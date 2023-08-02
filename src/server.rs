@@ -14,8 +14,8 @@ struct Index{
 /// the `MerkleVerseServer` struct records the current server's location within the
 /// Merkle Verse system.
 pub struct MerkleVerseServer{
-    index: Index,
     prefix: Index,
+    length: u32,
     superior: Option<ServerCluster>,
     parallel: Option<ServerCluster>,
 }

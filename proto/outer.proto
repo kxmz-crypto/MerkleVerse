@@ -4,12 +4,18 @@ package mversegrpc;
 
 message Empty{}
 
-service MerkleProvider {
+service MerkleVerseServer {
   rpc GetRoot(GetMerkleRootRequest) returns (GetMerkleRootResponse) {}
   rpc GetCurrentRoot(Empty) returns (GetMerkleRootResponse) {}
   rpc LookUpLatest(LookUpLatestRequest) returns (LookUpLatestResponse) {}
   rpc Transaction(TransactionRequest) returns (TransactionResponse) {}
   rpc LookUpHistory(LookupHistoryRequest) returns (LookUpHistoryResponse) {}
+
+  rpc GetServerInformation(Empty) returns (ServerInformationResponse) {}
+}
+
+message ServerInformationResponse{
+
 }
 
 message TransactionRequest {
