@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+option go_package = "../mversegrpc";
+package mversegrpc;
+
+message Empty{}
+
+service MerkleProvider {
+  rpc GetRoot(GetMerkleRootRequest) returns (GetMerkleRootResponse) {}
+  rpc GetCurrentRoot(Empty) returns (GetMerkleRootResponse) {}
+  rpc LookUpLatest(LookUpLatestRequest) returns (LookUpLatestResponse) {}
+  rpc Transaction(TransactionRequest) returns (TransactionResponse) {}
+  rpc LookUpHistory(LookupHistoryRequest) returns (LookUpHistoryResponse) {}
+}
+
+message TransactionRequest {
+  enum TransactionType {
+    Update = 0;
+    Delete = 1;
+  }
+  enum Origin{
+    Client = 0;
+    Server = 1;
+  }
+  TransactionType transaction_type = 1;
+  bytes key = 2;
+  Origin origin = 3;
+  optional bytes value = 4;
+}
+
+message TransactionResponse {
+  enum TransactionStatus {
+    Success = 0;
+    Failure = 1;
+  }
+  TransactionStatus status = 1;
+  bytes head = 2;
+}
+
+message Epoch{
+  uint64 epoch = 1;
+}
+
+message Position {
+  bytes pos = 1;
+}
+
+message Hash {
+  bytes hash = 1;
+}
+
+message MerklePath {
+  repeated Hash nodes = 1;
+}
+
+message MerkleProof {
+  MerklePath copath = 1;
+
+  enum MerkleProofType {
+    Membership = 0;
+    NonMembership = 1;
+  }
+
+  MerkleProofType proof_type = 2;
+  Position start_pos = 3;
+  Position end_pos = 4;
+}
+
+message GetMerkleRootRequest {
+  Epoch epoch = 1;
+}
+
+message GetMerkleRootResponse {
+  bytes head = 1;
+}
+
+message LookUpLatestRequest {
+  bytes key = 2;
+}
+
+message LookUpLatestResponse {
+  bytes value = 1;
+  MerkleProof proof = 2;
+  bytes head = 3;
+}
+
+message LookupHistoryRequest {
+  bytes key = 1;
+  enum LookUpType {
+    Last = 0;
+    Since = 1;
+    Complete = 2;
+  }
+  LookUpType lookup_type = 2;
+  uint64 n = 3;
+}
+
+message LookUpHistoryResponse{
+  repeated bytes values = 1;
+  repeated MerkleProof proof = 2;
+  bytes head = 3;
+}
