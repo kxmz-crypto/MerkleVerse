@@ -1,21 +1,20 @@
 syntax = "proto3";
 
-package mversegrpc;
+package mverseouter;
 
 message Empty{}
 
-service MerkleVerseServer {
+service MerkleVerse {
   rpc GetRoot(GetMerkleRootRequest) returns (GetMerkleRootResponse) {}
   rpc GetCurrentRoot(Empty) returns (GetMerkleRootResponse) {}
   rpc LookUpLatest(LookUpLatestRequest) returns (LookUpLatestResponse) {}
   rpc Transaction(TransactionRequest) returns (TransactionResponse) {}
   rpc LookUpHistory(LookupHistoryRequest) returns (LookUpHistoryResponse) {}
-
   rpc GetServerInformation(Empty) returns (ServerInformationResponse) {}
 }
 
 message ServerInformationResponse{
-
+  string server_name = 1;
 }
 
 message TransactionRequest {

@@ -1,3 +1,12 @@
+struct Signature{
+    signature: Vec<u8>
+}
+
+struct EpochInfo{
+    head: Vec<u8>,
+    signatures: Vec<Signature>,
+}
+
 struct PeerServer {
 //     TODO implement this type
 }
