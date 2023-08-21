@@ -7,6 +7,7 @@ message Empty{}
 service MerkleProvider {
   rpc GetRoot(GetMerkleRootRequest) returns (GetMerkleRootResponse) {}
   rpc GetCurrentRoot(Empty) returns (GetMerkleRootResponse) {}
+  rpc TriggerEpoch(Empty) returns (GetMerkleRootRequest) {}
   rpc LookUpLatest(LookUpLatestRequest) returns (LookUpLatestResponse) {}
   rpc Transaction(TransactionRequest) returns (TransactionResponse) {}
   rpc LookUpHistory(LookupHistoryRequest) returns (LookUpHistoryResponse) {}
