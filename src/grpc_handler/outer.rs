@@ -4,7 +4,7 @@ use tonic::transport::Channel;
 pub use mverseouter::{ServerInformationResponse, merkle_verse_server::{MerkleVerseServer, MerkleVerse} };
 use crate::grpc_handler::outer::mverseouter::{Empty, GetMerkleRootRequest, GetMerkleRootResponse, LookupHistoryRequest, LookUpHistoryResponse, LookUpLatestRequest, LookUpLatestResponse, TransactionRequest, TransactionResponse};
 use crate::grpc_handler::inner::{MerkleProviderClient, mversegrpc};
-use color_eyre::eyre::Result;
+use anyhow::Result;
 
 pub mod mverseouter {
     tonic::include_proto!("mverseouter");
@@ -18,8 +18,6 @@ pub struct OuterMerkleVerseServer {
 
 impl OuterMerkleVerseServer {
     pub async fn new(dst: String) -> Result<Self> {
-        // let inner_client = Arc::new(Mutex::new(
-        //     MerkleProviderClient::connect(dst).await?));
         Ok(Self {
             inner_dst: dst,
         })
@@ -30,7 +28,7 @@ impl OuterMerkleVerseServer{
     async fn get_client(&self) -> Result<MerkleProviderClient<Channel>, Status> {
         match MerkleProviderClient::connect(self.inner_dst.clone()).await {
             Ok(res) => Ok(res),
-            Err(e) => Err(Status::internal(e.to_string())),
+            Err(e) => Err(Status::internal(format!("Failed to connect to inner server: {}", e))),
         }
     }
 }
@@ -38,7 +36,7 @@ impl OuterMerkleVerseServer{
 impl Default for OuterMerkleVerseServer {
     fn default() -> Self {
         Self {
-            inner_dst: "[::1]:1319".into(),
+            inner_dst: "http://[::1]:49563".into(),
         }
     }
 }
