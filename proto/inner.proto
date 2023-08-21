@@ -7,7 +7,7 @@ message Empty{}
 service MerkleProvider {
   rpc GetRoot(GetMerkleRootRequest) returns (GetMerkleRootResponse) {}
   rpc GetCurrentRoot(Empty) returns (GetMerkleRootResponse) {}
-  rpc TriggerEpoch(Empty) returns (GetMerkleRootResponse) {}
+  rpc TriggerEpoch(Empty) returns (TriggerEpochResponse) {}
   rpc LookUpLatest(LookUpLatestRequest) returns (LookUpLatestResponse) {}
   rpc Transaction(TransactionRequest) returns (TransactionResponse) {}
   rpc LookUpHistory(LookupHistoryRequest) returns (LookUpHistoryResponse) {}
@@ -70,6 +70,11 @@ message GetMerkleRootRequest {
 
 message GetMerkleRootResponse {
   bytes head = 1;
+}
+
+message TriggerEpochResponse{
+  bytes head = 1;
+  Epoch new_epoch = 2;
 }
 
 message LookUpLatestRequest {
