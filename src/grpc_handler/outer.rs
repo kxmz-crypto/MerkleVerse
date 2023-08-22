@@ -1,9 +1,10 @@
-
 use tonic::{IntoRequest, Request, Response, Status};
 use tonic::transport::Channel;
-pub use mverseouter::{ServerInformationResponse, merkle_verse_server::{MerkleVerseServer, MerkleVerse} };
+pub use mverseouter::{ServerInformationResponse, merkle_verse_server::{MerkleVerseServer, MerkleVerse}};
+pub use mverseouter::merkle_verse_client::MerkleVerseClient;
 use crate::grpc_handler::outer::mverseouter::{Empty, GetMerkleRootRequest, GetMerkleRootResponse, LookupHistoryRequest, LookUpHistoryResponse, LookUpLatestRequest, LookUpLatestResponse, TransactionRequest, TransactionResponse};
 use crate::grpc_handler::inner::{MerkleProviderClient, mversegrpc};
+use crate::server;
 use anyhow::Result;
 
 pub mod mverseouter {
@@ -14,12 +15,14 @@ pub mod mverseouter {
 #[derive(Debug)]
 pub struct OuterMerkleVerseServer {
     inner_dst: String,
+    mverse: server::MerkleVerseServer,
 }
 
 impl OuterMerkleVerseServer {
-    pub async fn new(dst: String) -> Result<Self> {
+    pub async fn new(dst: String, mverse: server::MerkleVerseServer) -> Result<Self> {
         Ok(Self {
             inner_dst: dst,
+            mverse
         })
     }
 }
@@ -37,6 +40,7 @@ impl Default for OuterMerkleVerseServer {
     fn default() -> Self {
         Self {
             inner_dst: "http://[::1]:49563".into(),
+            mverse: server::MerkleVerseServer::default(),
         }
     }
 }
