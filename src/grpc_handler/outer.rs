@@ -12,41 +12,8 @@ pub mod mverseouter {
 }
 
 
-#[derive(Debug)]
-pub struct OuterMerkleVerseServer {
-    inner_dst: String,
-    mverse: server::MerkleVerseServer,
-}
-
-impl OuterMerkleVerseServer {
-    pub async fn new(dst: String, mverse: server::MerkleVerseServer) -> Result<Self> {
-        Ok(Self {
-            inner_dst: dst,
-            mverse
-        })
-    }
-}
-
-impl OuterMerkleVerseServer{
-    async fn get_client(&self) -> Result<MerkleProviderClient<Channel>, Status> {
-        match MerkleProviderClient::connect(self.inner_dst.clone()).await {
-            Ok(res) => Ok(res),
-            Err(e) => Err(Status::internal(format!("Failed to connect to inner server: {}", e))),
-        }
-    }
-}
-
-impl Default for OuterMerkleVerseServer {
-    fn default() -> Self {
-        Self {
-            inner_dst: "http://[::1]:49563".into(),
-            mverse: server::MerkleVerseServer::default(),
-        }
-    }
-}
-
 #[tonic::async_trait]
-impl MerkleVerse for OuterMerkleVerseServer {
+impl MerkleVerse for server::MerkleVerseServer {
     async fn get_server_information(&self, _request: Request<Empty>) -> Result<Response<ServerInformationResponse>, Status> {
          Ok(Response::new(ServerInformationResponse{
                  server_name: "Outer Merkle Verse Server".into(),
@@ -54,7 +21,7 @@ impl MerkleVerse for OuterMerkleVerseServer {
     }
 
     async fn look_up_history(&self, request: Request<LookupHistoryRequest>) -> Result<Response<LookUpHistoryResponse>, Status> {
-        let mut inn_client = self.get_client().await?;
+        let mut inn_client = self.get_inner_client().await?;
         let inn_req : mversegrpc::LookupHistoryRequest= request.into_inner().into();
         let res: LookUpHistoryResponse = inn_client.look_up_history(
             inn_req.into_request()
@@ -64,14 +31,14 @@ impl MerkleVerse for OuterMerkleVerseServer {
     }
 
     async fn transaction(&self, request: Request<TransactionRequest>) -> Result<Response<TransactionResponse>, Status> {
-        let mut inn_client = self.get_client().await?;
+        let mut inn_client = self.get_inner_client().await?;
         let inn_req : mversegrpc::TransactionRequest = request.into_inner().into();
         let res: TransactionResponse = inn_client.transaction(inn_req.into_request()).await?.into_inner().into();
         Ok(Response::new(res))
     }
 
     async fn get_current_root(&self, _request: Request<Empty>) -> Result<Response<GetMerkleRootResponse>, Status> {
-        let mut inn_client = self.get_client().await?;
+        let mut inn_client = self.get_inner_client().await?;
         let inn_req = mversegrpc::Empty{};
         let res : GetMerkleRootResponse = inn_client
             .get_current_root(inn_req.into_request())
@@ -85,7 +52,7 @@ impl MerkleVerse for OuterMerkleVerseServer {
     }
 
     async fn get_root(&self, request: Request<GetMerkleRootRequest>) -> Result<Response<GetMerkleRootResponse>, Status> {
-        let mut inn_client = self.get_client().await?;
+        let mut inn_client = self.get_inner_client().await?;
         let inn_req : mversegrpc::GetMerkleRootRequest = request.into_inner().into();
         let res : GetMerkleRootResponse = inn_client.get_root(inn_req.into_request())
             .await?
@@ -98,7 +65,7 @@ impl MerkleVerse for OuterMerkleVerseServer {
     }
 
     async fn look_up_latest(&self, request: Request<LookUpLatestRequest>) -> Result<Response<LookUpLatestResponse>, Status> {
-        let mut inn_client = self.get_client().await?;
+        let mut inn_client = self.get_inner_client().await?;
         let inn_req : mversegrpc::LookUpLatestRequest = request.into_inner().into();
         let res = inn_client.look_up_latest(inn_req.into_request())
             .await?

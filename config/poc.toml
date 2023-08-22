@@ -1,0 +1,47 @@
+[[servers]]
+id = "root"
+outer_port = 1319
+outer_addr = "[::1]:1319"
+inner_port = 10000
+length = 2
+epoch_interval = 100
+
+[[servers]]
+id = "edge1"
+outer_port = 1320
+outer_addr = "[::1]:1320"
+inner_port = 10001
+length = 6
+prefix = "AA=="
+prefix_length = 2
+epoch_interval = 50
+
+[[servers]]
+id = "edge2"
+outer_port = 1321
+outer_addr = "[::1]:1321"
+inner_port = 10002
+length = 6
+prefix = "AQ=="
+prefix_length = 2
+epoch_interval = 50
+
+[[servers]]
+id = "edge3"
+outer_port = 1322
+outer_addr = "[::1]:1322"
+inner_port = 10003
+length = 6
+prefix = "Ag=="
+prefix_length = 2
+epoch_interval = 50
+
+[[servers]]
+id = "edge4"
+outer_port = 1323
+outer_addr = "[::1]:1323"
+inner_port = 10004
+length = 6
+prefix = "Aw=="
+prefix_length = 2
+epoch_interval = 50
