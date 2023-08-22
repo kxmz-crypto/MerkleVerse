@@ -5,6 +5,7 @@ use tonic::transport::Server;
 mod grpc_handler;
 mod server;
 mod bridge;
+mod config;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
