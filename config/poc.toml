@@ -4,7 +4,7 @@ outer_port = 1319
 outer_addr = "[::1]:1319"
 inner_port = 10000
 length = 2
-epoch_interval = 100
+epoch_interval = 3000
 
 [[servers]]
 id = "edge1"
@@ -14,7 +14,7 @@ inner_port = 10001
 length = 6
 prefix = "AA=="
 prefix_length = 2
-epoch_interval = 50
+epoch_interval = 1000
 
 [[servers]]
 id = "edge2"
