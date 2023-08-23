@@ -3,6 +3,7 @@ use crate::utils;
 
 use anyhow::Result;
 use std::convert::TryFrom;
+use crate::server::mverse::MServerPointer;
 
 struct Signature{
     signature: Vec<u8>
@@ -13,18 +14,21 @@ struct EpochInfo{
     signatures: Vec<Signature>,
 }
 
-#[derive(Debug)]
-struct PeerServer {
-//     TODO implement this type
+#[derive(Debug, Clone)]
+pub struct PeerServer {
+    connection_string: String,
+    prefix: Index,
+    length: u32,
+    epoch_interval: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct ServerCluster{
-    prefix: Index,
+    prefix: Option<Index>,
     servers: Vec<PeerServer>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Index{
     index: Vec<u8>,
     length: u32
@@ -32,10 +36,10 @@ struct Index{
 
 /// the `MerkleVerseServer` struct records the current server's location within the
 /// Merkle Verse system.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MerkleVerseServer{
     inner_dst: String,
-    connection_string: String,
+    pub connection_string: String,
     prefix: Index,
     length: u32,
     superior: Option<ServerCluster>,
@@ -60,5 +64,27 @@ impl Index{
             length,
         })
     }
+
+    pub fn to_binstring(&self) -> Result<String> {
+        Ok(utils::binary_string(&self.index, usize::try_from(self.length)?))
+    }
 }
+
+impl From<Vec<MServerPointer>> for ServerCluster{
+    fn from(servers: Vec<MServerPointer>) -> Self {
+        Self{
+            prefix: None,
+            servers: servers.iter().map(|x| {
+                let srv = x.borrow();
+                PeerServer {
+                    connection_string: srv.connection_string.clone(),
+                    prefix: srv.prefix.clone(),
+                    length: srv.length,
+                    epoch_interval: srv.epoch_interval,
+                }
+            }).collect(),
+        }
+    }
+}
+
 //TODO: add BLS signatures https://docs.rs/bls-signatures/0.14.0/bls_signatures/

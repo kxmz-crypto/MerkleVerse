@@ -13,7 +13,7 @@ pub fn b64_to_loc(b64: &str, length: usize) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 
-fn binary_string(bytes: Vec<u8>, length: usize) -> String {
+pub fn binary_string(bytes: &Vec<u8>, length: usize) -> String {
     let mut binary_string: String = bytes.iter().map(|byte| format!("{:08b}", byte)).collect();
     if binary_string.len() < length {
         let mut tmp = String::new();
@@ -35,10 +35,10 @@ mod tests{
     #[test]
     fn tst_decoding() -> Result<()>{
         let base = "Ag==";
-        assert_eq!(binary_string(b64_to_loc(base, 8)?, 8), "00000010");
-        assert_eq!(binary_string(b64_to_loc(base, 3)?, 3), "010");
+        assert_eq!(binary_string(&b64_to_loc(base, 8)?, 8), "00000010");
+        assert_eq!(binary_string(&b64_to_loc(base, 3)?, 3), "010");
         let base_2 = "ATs=";
-        assert_eq!(binary_string(b64_to_loc(base_2, 9)?, 9), "100111011");
+        assert_eq!(binary_string(&b64_to_loc(base_2, 9)?, 9), "100111011");
         Ok(())
     }
 }

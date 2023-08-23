@@ -1,10 +1,16 @@
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
 use super::{MerkleVerseServer, Index};
 use crate::grpc_handler::outer;
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use tonic::Status;
 use tonic::transport::Channel;
 use crate::grpc_handler::inner::MerkleProviderClient;
 use crate::config;
+use crate::server::{PeerServer, ServerCluster};
+
+pub type MServerPointer = Rc<RefCell<MerkleVerseServer>>;
 
 impl Default for MerkleVerseServer{
     fn default() -> Self {
@@ -21,10 +27,10 @@ impl Default for MerkleVerseServer{
 }
 
 impl MerkleVerseServer {
-    pub fn relative_index(&self) -> Result<Index> {
-        match &self.superior {
-            Some(cluster) => {
-                let ln =self.prefix.length - cluster.prefix.length;
+    pub fn relative_index(&self, superior: Option<PeerServer>) -> Result<Index> {
+        match superior {
+            Some(srv) => {
+                let ln =self.prefix.length - srv.prefix.length;
                 Ok(Index{
                     index: self.prefix.index
                         .clone()
@@ -53,18 +59,89 @@ impl MerkleVerseServer {
         }
     }
 
-    pub async fn from_config(config: config::Server) -> Result<Self> {
+    /// Generate from a single Server config
+    pub async fn from_config(config: &config::Server) -> Result<Self> {
        Ok(Self{
            epoch_interval: config.epoch_interval,
-           inner_dst: format!("http://[::1]:{}", config.inner_port),
+           inner_dst: format!("http://127.0.0.1:{}", config.inner_port),
            length: config.length,
-           prefix: match config.prefix {
-               Some(prefix) => Index::from_b64(&prefix, config.length)?,
+           prefix: match &config.prefix {
+               Some(prefix) => Index::from_b64(
+                   prefix,
+                   config.prefix_length.ok_or(anyhow!("Prefix length not specified"))?
+               )?,
                None => Index::default()
            },
-           connection_string: format!("http://[::1]:{}", config.outer_port),
+           connection_string: format!("127.0.0.1:{}", config.outer_port),
            parallel: None,
            superior: None,
        })
+    }
+
+    /// Generate from a cluster config
+    pub async fn from_cluster_config(config: config::ServersConfig) -> Result<Self>{
+        let mut prefix_map : HashMap<String, Vec<MServerPointer>> = HashMap::new();
+        let mut length_map : HashMap<u32, Vec<MServerPointer>> = HashMap::new();
+        let mut servers : Vec<(String, MServerPointer)> = vec![];
+
+        for cfig in config.servers{
+            let pnt: MServerPointer = Rc::new(RefCell::new(Self::from_config(&cfig).await?));
+            servers.push((cfig.id.clone(), pnt.clone()));
+
+            let prefix_bin = &cfig.prefix_bin()?;
+            if prefix_map.get(prefix_bin).is_none(){
+                prefix_map.insert(prefix_bin.clone(), vec![]);
+            }
+            prefix_map.get_mut(prefix_bin).unwrap().push(pnt.clone());
+
+            if length_map.get(&cfig.length).is_none(){
+                length_map.insert(cfig.length, vec![]);
+            }
+            length_map.get_mut(&cfig.length).unwrap().push(pnt.clone());
+        }
+
+        servers.sort_by(|a, b|
+            a.1.borrow().prefix.to_binstring().unwrap()
+                .cmp(&b.1.borrow().prefix.to_binstring().unwrap())
+        );
+
+        let mut res = None;
+        for i in 0..servers.len(){
+            let mut server = servers[i].1.borrow_mut();
+            let pref = server.prefix.to_binstring()?;
+            let mut superiors: Vec<MServerPointer> = vec![];
+            for j in 0..i{
+                let sup = &servers[j].1.borrow();
+                if sup.length == server.prefix.length && pref.starts_with(&sup.prefix.to_binstring()?) {
+                    superiors.push(servers[j].1.clone());
+                }
+            }
+            if superiors.len()>0 {
+                server.superior = Some(ServerCluster::from(superiors));
+            }
+
+            if &servers[i].0 == &config.id{
+                res = Some(servers[i].1.clone());
+            }
+        }
+
+        if let Some(s) = res {
+            let mut server = s.borrow_mut();
+            let mut parallels: Vec<MServerPointer> = vec![];
+            let prf = server.prefix.to_binstring()?;
+            for ns in prefix_map.get(&prf).unwrap(){
+                if !Rc::ptr_eq(&ns, &s) && ns.borrow().prefix.length == server.prefix.length {
+                    parallels.push(ns.clone());
+                }
+            }
+
+            if parallels.len()>0 {
+                server.parallel = Some(ServerCluster::from(parallels));
+            }
+
+            Ok(server.clone())
+        }else{
+            Err(anyhow!("Target not found in config"))
+        }
     }
 }
