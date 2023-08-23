@@ -26,10 +26,18 @@ async fn main() -> Result<()> {
         cfig
     ).await?;
     let conn = server.connection_string.clone();
+
+    let server_cl = server.clone();
+    let epoch_loop = tokio::spawn(async move {
+        &server_cl.epoch_loop().await;
+    });
+
     eprintln!("Server starting at {}", conn);
     Server::builder()
         .add_service(MerkleVerseServer::new(server))
         .serve(conn.parse()?)
         .await?;
+
+    tokio::try_join!(epoch_loop)?;
     Ok(())
 }

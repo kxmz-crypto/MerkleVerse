@@ -4,9 +4,11 @@ use std::rc::Rc;
 use super::{MerkleVerseServer, Index};
 use crate::grpc_handler::outer;
 use anyhow::{Result, anyhow};
-use tonic::Status;
+use tonic::{IntoRequest, Status};
 use tonic::transport::Channel;
 use crate::grpc_handler::inner::MerkleProviderClient;
+use crate::grpc_handler::inner::mversegrpc;
+use crate::grpc_handler::outer::mverseouter;
 use crate::config;
 use crate::server::{PeerServer, ServerCluster};
 
@@ -26,8 +28,14 @@ impl Default for MerkleVerseServer{
     }
 }
 
+impl PeerServer {
+    pub async fn get_client(&self) -> Result<outer::MerkleVerseClient<Channel>> {
+        Ok(outer::MerkleVerseClient::connect(self.connection_string.clone()).await?)
+    }
+}
+
 impl MerkleVerseServer {
-    pub fn relative_index(&self, superior: Option<PeerServer>) -> Result<Index> {
+    pub fn relative_index(&self, superior: Option<&PeerServer>) -> Result<Index> {
         match superior {
             Some(srv) => {
                 let ln =self.prefix.length - srv.prefix.length;
@@ -56,6 +64,41 @@ impl MerkleVerseServer {
         match MerkleProviderClient::connect(self.inner_dst.clone()).await {
             Ok(res) => Ok(res),
             Err(e) => Err(Status::internal(format!("Failed to connect to inner server: {}", e))),
+        }
+    }
+
+    async fn trigger_epoch(&self) -> Result<()> {
+        let mut inn_client = self.get_inner_client().await?;
+        let res = inn_client.trigger_epoch(mversegrpc::Empty{}.into_request())
+            .await?
+            .into_inner();
+        eprintln!("Epoch #{:?} triggered, new head: {:?}", res.new_epoch, res.head);
+        if let Some(servers) = &self.superior{
+            let mut futures = vec![];
+            for srv in &servers.servers{
+                eprintln!("Triggering epoch on superior server: {:?}", srv.connection_string);
+                let mut client = srv.get_client().await?;
+                let cphead = res.head.clone();
+                futures.push(async move{
+                        client.transaction(mverseouter::TransactionRequest{
+                            value: Some(cphead),
+                            key: self.relative_index(Some(&srv)).unwrap().index,
+                            origin: mverseouter::transaction_request::Origin::Server.into(),
+                            transaction_type: mverseouter::transaction_request::TransactionType::Update.into(),
+                        }.into_request()).await
+                    }
+                );
+            }
+            futures::future::try_join_all(futures).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn epoch_loop(&self) -> Result<()> {
+        eprintln!("Epoch loop started");
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_millis(self.epoch_interval.into())).await;
+            self.trigger_epoch().await?;
         }
     }
 

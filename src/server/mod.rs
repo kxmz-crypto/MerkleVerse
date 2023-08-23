@@ -77,7 +77,7 @@ impl From<Vec<MServerPointer>> for ServerCluster{
             servers: servers.iter().map(|x| {
                 let srv = x.borrow();
                 PeerServer {
-                    connection_string: srv.connection_string.clone(),
+                    connection_string: format!("http://{}",srv.connection_string.clone()),
                     prefix: srv.prefix.clone(),
                     length: srv.length,
                     epoch_interval: srv.epoch_interval,
