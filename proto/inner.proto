@@ -54,14 +54,7 @@ message MerklePath {
 }
 
 message MerkleProof {
-  MerklePath copath = 1;
-
-  enum MerkleProofType {
-    Membership = 0;
-    NonMembership = 1;
-  }
-
-  MerkleProofType proof_type = 2;
+  bytes proof = 1;
 }
 
 message GetMerkleRootRequest {

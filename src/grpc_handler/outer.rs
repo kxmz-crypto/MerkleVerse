@@ -1,8 +1,8 @@
 use tonic::{IntoRequest, Request, Response, Status};
-use tonic::transport::Channel;
 pub use mverseouter::{ServerInformationResponse, merkle_verse_server::{MerkleVerseServer, MerkleVerse}};
 pub use mverseouter::merkle_verse_client::MerkleVerseClient;
-use crate::grpc_handler::outer::mverseouter::{Empty, GetMerkleRootRequest, GetMerkleRootResponse, LookupHistoryRequest, LookUpHistoryResponse, LookUpLatestRequest, LookUpLatestResponse, TransactionRequest, TransactionResponse};
+pub use mversegrpc::{TransactionRequest, TransactionResponse, LookupHistoryRequest, LookUpHistoryResponse, GetMerkleRootRequest, GetMerkleRootResponse, LookUpLatestRequest, LookUpLatestResponse};
+use crate::grpc_handler::outer::mverseouter::{Empty};
 use crate::grpc_handler::inner::{MerkleProviderClient, mversegrpc};
 use crate::server;
 use anyhow::Result;

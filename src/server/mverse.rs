@@ -8,7 +8,6 @@ use tonic::{IntoRequest, Status};
 use tonic::transport::Channel;
 use crate::grpc_handler::inner::MerkleProviderClient;
 use crate::grpc_handler::inner::mversegrpc;
-use crate::grpc_handler::outer::mverseouter;
 use crate::config;
 use crate::server::{PeerServer, ServerCluster};
 
@@ -80,11 +79,11 @@ impl MerkleVerseServer {
                 let mut client = srv.get_client().await?;
                 let cphead = res.head.clone();
                 futures.push(async move{
-                        client.transaction(mverseouter::TransactionRequest{
+                        client.transaction(mversegrpc::TransactionRequest{
                             value: Some(cphead),
                             key: self.relative_index(Some(&srv)).unwrap().index,
-                            origin: mverseouter::transaction_request::Origin::Server.into(),
-                            transaction_type: mverseouter::transaction_request::TransactionType::Update.into(),
+                            origin: mversegrpc::transaction_request::Origin::Server.into(),
+                            transaction_type: mversegrpc::transaction_request::TransactionType::Update.into(),
                         }.into_request()).await
                     }
                 );
