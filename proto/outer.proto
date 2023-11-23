@@ -14,6 +14,30 @@ service MerkleVerse {
   rpc GetServerInformation(Empty) returns (ServerInformationResponse) {}
 }
 
+// The data that peer sends to others to identify themselves
+message Identity{
+  string name = 1;
+  string public_key = 2;
+}
+
 message ServerInformationResponse{
   string server_name = 1;
+}
+
+message PeerCommit {
+  mversegrpc.Epoch epoch = 1;
+  bytes signature = 2;
+  Identity peer_identity = 3;
+}
+
+message PeerPrepare {
+  mversegrpc.Epoch epoch = 1;
+  Identity peer_identity = 2;
+}
+
+// include auth data from the user?
+message PeerTransaction {
+  mversegrpc.Epoch epoch = 1;
+  bytes signature = 2;
+  mversegrpc.TransactionRequest transaction = 3;
 }
