@@ -1,8 +1,11 @@
 mod mverse;
+mod synchronization;
+
 use crate::utils;
 
 use anyhow::Result;
 use std::convert::TryFrom;
+use crate::grpc_handler::outer::TransactionRequest;
 use crate::server::mverse::MServerPointer;
 
 struct Signature{
@@ -20,6 +23,7 @@ pub struct PeerServer {
     prefix: Index,
     length: u32,
     epoch_interval: u32,
+    public_key: Option<Vec<u8>>,
 }
 
 #[derive(Debug, Clone)]
@@ -44,7 +48,10 @@ pub struct MerkleVerseServer{
     length: u32,
     superior: Option<ServerCluster>,
     parallel: Option<ServerCluster>,
-    epoch_interval: u32
+    epoch_interval: u32,
+    private_key: Option<Vec<u8>>,
+    public_key: Option<Vec<u8>>,
+    transactions: Vec<TransactionRequest>,
 }
 
 impl Default for Index{
