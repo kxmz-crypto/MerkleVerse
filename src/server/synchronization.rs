@@ -3,8 +3,8 @@ use crate::server::{MerkleVerseServer, ServerId};
 use anyhow::{anyhow, Result};
 use tonic::IntoRequest;
 use crate::grpc_handler::inner::mversegrpc::Epoch;
-use crate::grpc_handler::outer::mverseouter::{ClientTransactionRequest, PeerPrepareRequest, PeerTransactionRequest, ServerIdentity};
-
+use crate::grpc_handler::outer::mverseouter::{ClientTransactionRequest, PeerCommitRequest, PeerPrepareRequest, PeerTransactionRequest, ServerIdentity};
+use bls_signatures::{aggregate, Serialize, Signature};
 
 #[derive(Debug)]
 pub enum Transaction{
@@ -14,10 +14,10 @@ pub enum Transaction{
 
 #[derive(Debug)]
 pub struct MultiSig{
-    pub epoch: u32,
+    pub epoch: u64,
     pub root: Vec<u8>,
-    pub aggregate: Vec<u8>,
-    pub signatures: HashMap<ServerId, Vec<u8>>
+    pub aggregate: Signature,
+    pub signatures: HashMap<ServerId, Signature>
 }
 
 #[derive(Debug, Default)]
@@ -31,13 +31,19 @@ pub enum RunState{
 pub struct MerkleVerseServerState {
     pub current_root: Vec<u8>,
     pub current_epoch: u64,
-    pub pending_transactions: HashMap<u64, Vec<Transaction>>, // Remember to remove transactions from this list when they are added to the tree
-    pub multi_sigs: HashMap<u64, MultiSig>,
-    pub run_state: RunState,
-    pub peer_states: HashMap<ServerId, MerkleVerseServerState>
+    pending_transactions: HashMap<u64, Vec<Transaction>>, // Remember to remove transactions from this list when they are added to the tree
+    multi_sigs: HashMap<u64, MultiSig>,
+    run_state: RunState,
+    peer_states: HashMap<ServerId, MerkleVerseServerState>
 }
 
 impl MerkleVerseServer {
+    fn server_identity(&self) -> ServerIdentity {
+        ServerIdentity{
+            server_id: self.id.0.clone()
+        }
+    }
+
     pub async fn broadcast_prepare(&self) -> Result<()> {
         let cur_epoch = {
             let mut serv_state = self.state.lock().unwrap();
@@ -81,13 +87,75 @@ impl MerkleVerseServer {
 
     pub async fn sign_and_broadcast(&self) -> Result<()> {
         /// Signs the current tree root with BLS, and broadcasts it to the parallel servers.
-        todo!()
+        let (epoch, sig) = {
+            let mut serv_state = self.state.lock().unwrap();
+            let sig = self.private_key.bls.sign(&serv_state.current_root);
+            let cur_epoch = serv_state.current_epoch;
+            match serv_state.multi_sigs.get_mut(&cur_epoch) {
+                Some(multi_sig) => {
+                    multi_sig.signatures.insert(self.id.clone(), sig);
+                    multi_sig.aggregate = aggregate([multi_sig.aggregate, sig].as_slice())?;
+                },
+                None => {
+                    let mut multi_sig = MultiSig{
+                        epoch: serv_state.current_epoch,
+                        root: serv_state.current_root.clone(),
+                        aggregate: sig,
+                        signatures: HashMap::new()
+                    };
+                    multi_sig.signatures.insert(self.id.clone(), sig);
+                    serv_state.multi_sigs.insert(cur_epoch, multi_sig);
+                }
+            }
+            (cur_epoch, sig)
+        };
+        if let Some(servers) = &self.parallel {
+            let mut futures = vec![];
+            for srv in &servers.servers {
+                let srv = srv.clone();
+                let mut client = srv.get_client().await?;
+                let fut = async move {
+                    client.peer_commit(PeerCommitRequest{
+                        peer_identity: Some(self.server_identity()),
+                        epoch: Some(Epoch{ epoch }),
+                        signature: sig.as_bytes().to_vec(),
+                    }).await
+                };
+                futures.push(fut);
+            }
+            futures::future::join_all(futures).await;
+        }
+        Ok(())
     }
 
-    pub async fn receive_signatures(&self) -> Result<()> {
+    pub async fn receive_signatures(&self, epoch: u64, head: &Vec<u8>, sig_bytes: &Vec<u8>) -> Result<()> {
         /// receives the signatures from the parallel servers regarding an epoch. If the contents match
         /// the current root, then the state of multisignature is updated.
-        todo!()
+        let mut serv_state = self.state.lock().unwrap();
+        if epoch != serv_state.current_epoch {
+            return Err(anyhow!("Received signatures for an epoch that is not equal to current epoch"));
+        }
+        if *head != serv_state.current_root {
+            return Err(anyhow!("Received signatures for a root that is not equal to current root"));
+        }
+        let sig = Signature::from_bytes(sig_bytes)?;
+        match serv_state.multi_sigs.get_mut(&epoch) {
+            Some(multi_sig) => {
+                multi_sig.signatures.insert(self.id.clone(), sig);
+                multi_sig.aggregate = aggregate([multi_sig.aggregate, sig].as_slice())?;
+            },
+            None => {
+                let mut multi_sig = MultiSig{
+                    epoch: serv_state.current_epoch,
+                    root: serv_state.current_root.clone(),
+                    aggregate: sig,
+                    signatures: HashMap::new()
+                };
+                multi_sig.signatures.insert(self.id.clone(), sig);
+                serv_state.multi_sigs.insert(epoch, multi_sig);
+            }
+        }
+        Ok(())
     }
 
     pub async fn watch_trigger_prepare(&self) -> Result<()> {
@@ -96,7 +164,7 @@ impl MerkleVerseServer {
         todo!()
     }
 
-    pub async fn trigger_sign_and_broadcast(&self) -> Result<()> {
+    pub async fn trigger_commit(&self) -> Result<()> {
         /// triggers the sign and broadcast phase when the prepare phase is finished,
         /// and when enough transactions are received.
         /// Note: might need to base this on the server configuration

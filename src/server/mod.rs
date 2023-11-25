@@ -2,15 +2,25 @@ mod messages;
 mod mverse;
 mod synchronization;
 
-use std::collections::HashMap;
 use crate::utils;
 
-use crate::grpc_handler::outer::TransactionRequest;
 use crate::server::mverse::MServerPointer;
 use anyhow::Result;
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex};
 use crate::server::synchronization::MerkleVerseServerState;
+
+#[derive(Debug, Clone)]
+struct PublicKey{
+    raw: Vec<u8>,
+    pub bls: bls_signatures::PublicKey
+}
+
+#[derive(Debug, Clone)]
+struct PrivateKey{
+    raw: Vec<u8>,
+    pub bls: bls_signatures::PrivateKey
+}
 
 struct Signature {
     signature: Vec<u8>,
@@ -28,7 +38,7 @@ pub struct PeerServer {
     prefix: Index,
     length: u32,
     epoch_interval: u32,
-    public_key: Option<Vec<u8>>,
+    public_key: Vec<u8>,
 }
 
 #[derive(Debug, Clone)]
@@ -58,8 +68,8 @@ pub struct MerkleVerseServer {
     superior: Option<ServerCluster>,
     parallel: Option<ServerCluster>,
     epoch_interval: u32,
-    private_key: Option<Vec<u8>>,
-    public_key: Vec<u8>,
+    private_key: PrivateKey,
+    public_key: PublicKey,
     state: Arc<Mutex<MerkleVerseServerState>>
 }
 

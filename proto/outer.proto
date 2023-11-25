@@ -13,6 +13,7 @@ service MerkleVerse {
   rpc ClientTransaction(ClientTransactionRequest) returns (mversegrpc.TransactionResponse) {}
   rpc PeerTransaction(PeerTransactionRequest) returns (mversegrpc.TransactionResponse) {}
   rpc PeerPrepare(PeerPrepareRequest) returns (Empty) {}
+  rpc PeerCommit(PeerCommitRequest) returns (Empty) {}
   rpc LookUpHistory(mversegrpc.LookupHistoryRequest) returns (mversegrpc.LookUpHistoryResponse) {}
   rpc GetServerInformation(Empty) returns (ServerInformationResponse) {}
 }
