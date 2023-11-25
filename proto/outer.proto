@@ -10,34 +10,42 @@ service MerkleVerse {
   rpc GetCurrentRoot(Empty) returns (mversegrpc.GetMerkleRootResponse) {}
   rpc LookUpLatest(mversegrpc.LookUpLatestRequest) returns (mversegrpc.LookUpLatestResponse) {}
   rpc Transaction(mversegrpc.TransactionRequest) returns (mversegrpc.TransactionResponse) {}
+  rpc ClientTransaction(ClientTransactionRequest) returns (mversegrpc.TransactionResponse) {}
+  rpc PeerTransaction(PeerTransactionRequest) returns (mversegrpc.TransactionResponse) {}
+  rpc PeerPrepare(PeerPrepareRequest) returns (Empty) {}
   rpc LookUpHistory(mversegrpc.LookupHistoryRequest) returns (mversegrpc.LookUpHistoryResponse) {}
   rpc GetServerInformation(Empty) returns (ServerInformationResponse) {}
 }
 
 // The data that peer sends to others to identify themselves
-message Identity{
-  string name = 1;
-  string public_key = 2;
+message ServerIdentity {
+  string server_id = 1;
 }
 
 message ServerInformationResponse{
   string server_name = 1;
+  string server_id = 2;
 }
 
-message PeerCommit {
+message PeerCommitRequest {
   mversegrpc.Epoch epoch = 1;
   bytes signature = 2;
-  Identity peer_identity = 3;
+  ServerIdentity peer_identity = 3;
 }
 
-message PeerPrepare {
+message PeerPrepareRequest {
   mversegrpc.Epoch epoch = 1;
-  Identity peer_identity = 2;
+  ServerIdentity peer_identity = 2; // Maybe add a checksum for all the transactions processed by a single server later
 }
 
-// include auth data from the user?
-message PeerTransaction {
+message ClientTransactionRequest {
+  mversegrpc.TransactionRequest transaction = 2;
+  optional bytes auxiliary = 3;
+}
+
+message PeerTransactionRequest {
   mversegrpc.Epoch epoch = 1;
-  bytes signature = 2;
-  mversegrpc.TransactionRequest transaction = 3;
+  mversegrpc.TransactionRequest transaction = 2;
+  bytes signature = 3;
+  optional bytes auxiliary = 4;
 }

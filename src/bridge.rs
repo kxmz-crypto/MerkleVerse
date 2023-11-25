@@ -1,3 +1,3 @@
-pub struct Bridge{
+pub struct Bridge {
     port: u32,
 }

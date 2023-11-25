@@ -1,13 +1,13 @@
-use anyhow::{Result, anyhow};
-use base64::{Engine as _, engine::general_purpose};
+use anyhow::{anyhow, Result};
+use base64::{engine::general_purpose, Engine as _};
 
 pub fn b64_to_loc(b64: &str, length: usize) -> Result<Vec<u8>> {
     let mut bytes = general_purpose::STANDARD.decode(b64)?;
-    if bytes.len() < length{
+    if bytes.len() < length {
         let mut tmp = vec![0; length - bytes.len()];
         tmp.extend(bytes);
         bytes = tmp;
-    }else if bytes.len() > length {
+    } else if bytes.len() > length {
         return Err(anyhow!("Decoded bytes exceded specified length"));
     }
     Ok(bytes)
@@ -23,17 +23,20 @@ pub fn binary_string(bytes: &Vec<u8>, length: usize) -> String {
         tmp.push_str(&binary_string);
         binary_string = tmp;
     } else if binary_string.len() > length {
-        binary_string = binary_string.chars().skip(binary_string.len() - length).collect();
+        binary_string = binary_string
+            .chars()
+            .skip(binary_string.len() - length)
+            .collect();
     }
     binary_string
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use super::*;
 
     #[test]
-    fn tst_decoding() -> Result<()>{
+    fn tst_decoding() -> Result<()> {
         let base = "Ag==";
         assert_eq!(binary_string(&b64_to_loc(base, 8)?, 8), "00000010");
         assert_eq!(binary_string(&b64_to_loc(base, 3)?, 3), "010");

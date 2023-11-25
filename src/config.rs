@@ -1,11 +1,11 @@
-use std::collections::HashMap;
-use config::{Config, ConfigError, Environment, File};
-use serde::Deserialize;
-use std::path::Path;
 use crate::server::MerkleVerseServer;
-use anyhow::Result;
-use serde::de::Unexpected::Str;
 use crate::utils::{b64_to_loc, binary_string};
+use anyhow::Result;
+use config::{Config, ConfigError, Environment, File};
+use serde::de::Unexpected::Str;
+use serde::Deserialize;
+use std::collections::HashMap;
+use std::path::Path;
 
 #[derive(Debug, Deserialize)]
 pub struct Server {
@@ -17,7 +17,8 @@ pub struct Server {
     pub prefix_length: Option<u32>,
     pub length: u32,
     pub epoch_interval: u32, // epoch interval in miliseconds
-    //TODO: pub_key: String,
+    pub pub_key: String,
+    pub private_key: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -38,28 +39,29 @@ impl ServersConfig {
     }
 }
 
-impl Server{
-    pub fn prefix_bin(&self) -> Result<String>{
+impl Server {
+    pub fn prefix_bin(&self) -> Result<String> {
         match (&self.prefix, self.prefix_length) {
             (Some(pref), Some(len)) => {
                 let len_siz = usize::try_from(len).unwrap();
                 Ok(binary_string(&b64_to_loc(&pref, len_siz)?, len_siz))
             }
-            _ => Ok(String::new())
+            _ => Ok(String::new()),
         }
     }
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use super::*;
-    use anyhow::{Result, anyhow};
+    use anyhow::{anyhow, Result};
     use std::env;
 
     #[tokio::test]
-    async fn test_config() -> Result<()>{
-        let path = Path::new( std::module_path!())
-            .parent().ok_or(anyhow!("Failed to get parent path"))?
+    async fn test_config() -> Result<()> {
+        let path = Path::new(std::module_path!())
+            .parent()
+            .ok_or(anyhow!("Failed to get parent path"))?
             .join("config")
             .join("poc.toml");
 
