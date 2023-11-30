@@ -1,6 +1,7 @@
 mod messages;
 mod mverse;
 mod synchronization;
+mod transactions;
 
 use crate::utils;
 
@@ -31,7 +32,7 @@ struct EpochInfo {
     signatures: Vec<Signature>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct PeerServer {
     connection_string: String,
     id: String,
@@ -47,7 +48,7 @@ struct ServerCluster {
     servers: Vec<PeerServer>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 struct Index {
     index: Vec<u8>,
     length: u32,
@@ -97,6 +98,15 @@ impl Index {
     }
 }
 
+impl From<Vec<u8>> for Index{
+    fn from(value: Vec<u8>) -> Self {
+        Self{
+            length: value.len() as u32,
+            index: value,
+        }
+    }
+}
+
 impl From<Vec<MServerPointer>> for ServerCluster {
     fn from(servers: Vec<MServerPointer>) -> Self {
         Self {
@@ -116,5 +126,3 @@ impl From<Vec<MServerPointer>> for ServerCluster {
         }
     }
 }
-
-//TODO: add BLS signatures https://docs.rs/bls-signatures/0.14.0/bls_signatures/

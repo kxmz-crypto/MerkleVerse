@@ -5,12 +5,8 @@ use tonic::IntoRequest;
 use crate::grpc_handler::inner::mversegrpc::Epoch;
 use crate::grpc_handler::outer::mverseouter::{ClientTransactionRequest, PeerCommitRequest, PeerPrepareRequest, PeerTransactionRequest, ServerIdentity};
 use bls_signatures::{aggregate, Serialize, Signature};
+use crate::server::transactions::Transaction;
 
-#[derive(Debug)]
-pub enum Transaction{
-    Client(ClientTransactionRequest),
-    Peer(PeerTransactionRequest)
-}
 
 #[derive(Debug)]
 pub struct MultiSig{
