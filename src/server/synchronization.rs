@@ -1,10 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use crate::server::{MerkleVerseServer, PeerServer, ServerId};
 use anyhow::{anyhow, Result};
 use tonic::IntoRequest;
 use crate::grpc_handler::inner::mversegrpc::Epoch;
 use crate::grpc_handler::outer::mverseouter::{ClientTransactionRequest, PeerCommitRequest, PeerPrepareRequest, PeerTransactionRequest, ServerIdentity};
 use bls_signatures::{aggregate, Serialize, Signature};
+use crate::grpc_handler::outer::TransactionRequest;
 use crate::server::transactions::{Transaction, TransactionPool};
 
 
@@ -161,10 +162,20 @@ impl MerkleVerseServer {
     }
 
     pub async fn trigger_commit(&self) -> Result<()> {
-        /// triggers the sign and broadcast phase when the prepare phase is finished,
-        /// and when enough transactions are received.
-        /// Note: might need to base this on the server configuration
-        todo!()
+        // triggers the sign and broadcast phase when the prepare phase is finished,
+        // and when enough transactions are received.
+        // Note: might need to base this on the server configuration
+        // TODO: support bulk transactions
+        let serv_state = self.state.lock().unwrap();
+        let transactions = serv_state.transaction_pool
+            .get_epoch(serv_state.current_epoch);
+        let mut inner_client = self.get_inner_client().await?;
+        if let Some(transactions) = transactions {
+            for t in transactions {
+                inner_client.transaction(TransactionRequest::from(t)).await?;
+            }
+        }
+        Ok(())
     }
 
     pub async fn receive_peer_transaction(&self, req: PeerTransactionRequest, source: ServerId) -> Result<()> {

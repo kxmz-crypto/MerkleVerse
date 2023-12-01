@@ -30,6 +30,16 @@ pub enum TransactionOp {
     Delete(Index)
 }
 
+impl TransactionOp{
+    pub fn to_raw(&self) -> (Vec<u8>, Option<Vec<u8>>) {
+        match self {
+            Self::Register(index, value) => (index.index.clone(), Some(value.clone())),
+            Self::Update(index, value) => (index.index.clone(), Some(value.clone())),
+            Self::Delete(index) => (index.index.clone(), None),
+        }
+    }
+}
+
 impl TryFrom<TransactionRequest> for TransactionOp {
     type Error = anyhow::Error;
 
@@ -50,9 +60,9 @@ impl TryFrom<TransactionRequest> for TransactionOp {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Transaction{
-    source: TransactionSource,
-    operation: TransactionOp,
-    auxiliary: Option<Vec<u8>>
+    pub source: TransactionSource,
+    pub operation: TransactionOp,
+    pub auxiliary: Option<Vec<u8>>
 }
 
 impl Hash for Transaction {
@@ -81,6 +91,25 @@ impl Transaction {
                 trans.transaction.ok_or(anyhow!("A valid transaction must be provided"))?
             )?
         })
+    }
+}
+
+impl From<&Transaction> for TransactionRequest {
+    fn from(transaction: &Transaction) -> Self {
+        let (key, value) = transaction.operation.to_raw();
+        Self {
+            key,
+            value,
+            origin: match &transaction.source {
+                TransactionSource::Peer(id) => transaction_request::Origin::Server.into(),
+                TransactionSource::Client => transaction_request::Origin::Client.into(),
+            },
+            transaction_type: match &transaction.operation {
+                TransactionOp::Register(_, _) => transaction_request::TransactionType::Update.into(),
+                TransactionOp::Update(_, _) => transaction_request::TransactionType::Update.into(),
+                TransactionOp::Delete(_) => transaction_request::TransactionType::Delete.into(),
+            }
+        }
     }
 }
 
