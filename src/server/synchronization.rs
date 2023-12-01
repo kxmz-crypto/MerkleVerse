@@ -1,11 +1,11 @@
 use std::collections::HashMap;
-use crate::server::{MerkleVerseServer, ServerId};
+use crate::server::{MerkleVerseServer, PeerServer, ServerId};
 use anyhow::{anyhow, Result};
 use tonic::IntoRequest;
 use crate::grpc_handler::inner::mversegrpc::Epoch;
 use crate::grpc_handler::outer::mverseouter::{ClientTransactionRequest, PeerCommitRequest, PeerPrepareRequest, PeerTransactionRequest, ServerIdentity};
 use bls_signatures::{aggregate, Serialize, Signature};
-use crate::server::transactions::Transaction;
+use crate::server::transactions::{Transaction, TransactionPool};
 
 
 #[derive(Debug)]
@@ -27,10 +27,10 @@ pub enum RunState{
 pub struct MerkleVerseServerState {
     pub current_root: Vec<u8>,
     pub current_epoch: u64,
-    pending_transactions: HashMap<u64, Vec<Transaction>>, // Remember to remove transactions from this list when they are added to the tree
     multi_sigs: HashMap<u64, MultiSig>,
     run_state: RunState,
-    peer_states: HashMap<ServerId, MerkleVerseServerState>
+    peer_states: HashMap<ServerId, MerkleVerseServerState>,
+    transaction_pool: TransactionPool
 }
 
 impl MerkleVerseServer {
@@ -165,5 +165,23 @@ impl MerkleVerseServer {
         /// and when enough transactions are received.
         /// Note: might need to base this on the server configuration
         todo!()
+    }
+
+    pub async fn receive_peer_transaction(&self, req: PeerTransactionRequest, source: ServerId) -> Result<()> {
+        // receives a transaction from a peer server, and inserts it into the transaction pool.
+        // Note: currently, if the transaction already exists, it is not inserted, and no error message is returned.
+        let mut serv_state = self.state.lock().unwrap();
+        serv_state.transaction_pool.insert_peer(req, source)?;
+        Ok(())
+    }
+
+    pub async fn receive_client_transaction(&self, req: ClientTransactionRequest) -> Result<()> {
+        let mut serv_state = self.state.lock().unwrap();
+        let epoch = match serv_state.run_state {
+            RunState::Prepare(_) => {serv_state.current_epoch+1}
+            RunState::Normal => {serv_state.current_epoch}
+        };
+        serv_state.transaction_pool.insert_client(epoch, req)?;
+        Ok(())
     }
 }
