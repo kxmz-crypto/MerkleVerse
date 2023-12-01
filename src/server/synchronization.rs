@@ -23,7 +23,7 @@ pub enum RunState{
     Normal
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct MerkleVerseServerState {
     pub current_root: Vec<u8>,
     pub current_epoch: u64,

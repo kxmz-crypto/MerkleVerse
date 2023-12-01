@@ -1,5 +1,5 @@
 use crate::grpc_handler::inner::{mversegrpc, MerkleProviderClient};
-use crate::grpc_handler::outer::mverseouter::Empty;
+use crate::grpc_handler::outer::mverseouter::{ClientTransactionRequest, Empty, PeerCommitRequest, PeerPrepareRequest, PeerTransactionRequest};
 use crate::server;
 use anyhow::Result;
 pub use mversegrpc::{
@@ -25,6 +25,7 @@ impl MerkleVerse for server::MerkleVerseServer {
     ) -> Result<Response<ServerInformationResponse>, Status> {
         Ok(Response::new(ServerInformationResponse {
             server_name: "Outer Merkle Verse Server".into(),
+            server_id: self.id.0.clone()
         }))
     }
 
@@ -77,7 +78,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         request: Request<GetMerkleRootRequest>,
     ) -> Result<Response<GetMerkleRootResponse>, Status> {
         let mut inn_client = self.get_inner_client().await?;
-        let inn_req: mversegrpc::GetMerkleRootRequest = request.into_inner().into();
+        let inn_req: GetMerkleRootRequest = request.into_inner().into();
         let res: GetMerkleRootResponse = inn_client
             .get_root(inn_req.into_request())
             .await?
@@ -92,12 +93,28 @@ impl MerkleVerse for server::MerkleVerseServer {
         request: Request<LookUpLatestRequest>,
     ) -> Result<Response<LookUpLatestResponse>, Status> {
         let mut inn_client = self.get_inner_client().await?;
-        let inn_req: mversegrpc::LookUpLatestRequest = request.into_inner().into();
+        let inn_req: LookUpLatestRequest = request.into_inner().into();
         let res = inn_client
             .look_up_latest(inn_req.into_request())
             .await?
             .into_inner()
             .into();
         Ok(Response::new(res))
+    }
+
+    async fn client_transaction(&self, request: Request<ClientTransactionRequest>) -> std::result::Result<Response<TransactionResponse>, Status> {
+        todo!()
+    }
+
+    async fn peer_transaction(&self, request: Request<PeerTransactionRequest>) -> std::result::Result<Response<TransactionResponse>, Status> {
+        todo!()
+    }
+
+    async fn peer_prepare(&self, request: Request<PeerPrepareRequest>) -> std::result::Result<Response<Empty>, Status> {
+        todo!()
+    }
+
+    async fn peer_commit(&self, request: Request<PeerCommitRequest>) -> std::result::Result<Response<Empty>, Status> {
+        todo!()
     }
 }

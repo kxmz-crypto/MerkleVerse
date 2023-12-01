@@ -98,7 +98,7 @@ impl TransactionPool {
 
     pub fn insert_peer(&mut self, req: PeerTransactionRequest, source: ServerId) -> Result<Option<()>>{
         self.insert_transaction(
-            req.epoch.ok_or(anyhow!("An epoch number must be provided!"))?.epoch,
+            req.epoch.clone().ok_or(anyhow!("An epoch number must be provided!"))?.epoch,
             Transaction::from_peer(req, source)?
         )
     }

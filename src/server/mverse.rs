@@ -1,4 +1,4 @@
-use super::{Index, MerkleVerseServer, ServerId};
+use super::{Index, MerkleVerseServer, PrivateKey, PublicKey, ServerId};
 use crate::config;
 use crate::grpc_handler::inner::mversegrpc;
 use crate::grpc_handler::inner::MerkleProviderClient;
@@ -8,25 +8,13 @@ use anyhow::{anyhow, Result};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use tonic::transport::Channel;
 use tonic::{IntoRequest, Status};
 use base64::{engine::general_purpose, Engine as _};
+use crate::server::synchronization::MerkleVerseServerState;
 
 pub type MServerPointer = Rc<RefCell<MerkleVerseServer>>;
-
-impl Default for MerkleVerseServer {
-    fn default() -> Self {
-        Self {
-            inner_dst: "http://[::1]:49563".into(),
-            connection_string: "http://[::1]:1319".into(),
-            prefix: Index::default(),
-            length: 0,
-            superior: None,
-            parallel: None,
-            epoch_interval: 0,
-        }
-    }
-}
 
 impl PeerServer {
     pub async fn get_client(&self) -> Result<outer::MerkleVerseClient<Channel>> {
@@ -134,11 +122,9 @@ impl MerkleVerseServer {
             connection_string: format!("127.0.0.1:{}", config.outer_port),
             parallel: None,
             superior: None,
-            private_key: match &config.private_key {
-                None => None,
-                Some(pk) => Some(general_purpose::STANDARD.decode(pk)?)
-            },
-            public_key: general_purpose::STANDARD.decode(&config.pub_key)?,
+            private_key: PrivateKey::try_from(general_purpose::STANDARD.decode(&config.private_key)?)?,
+            public_key: PublicKey::try_from( general_purpose::STANDARD.decode(&config.pub_key)?)?,
+            state: Arc::new(Mutex::new(MerkleVerseServerState::default()))
         })
     }
 

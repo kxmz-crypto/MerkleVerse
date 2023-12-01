@@ -18,7 +18,7 @@ pub struct Server {
     pub length: u32,
     pub epoch_interval: u32, // epoch interval in miliseconds
     pub pub_key: String,
-    pub private_key: Option<String>,
+    pub private_key: String,
 }
 
 #[derive(Debug, Deserialize)]
