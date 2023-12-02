@@ -3,17 +3,17 @@ use crate::config;
 use crate::grpc_handler::inner::mversegrpc;
 use crate::grpc_handler::inner::MerkleProviderClient;
 use crate::grpc_handler::outer;
+use crate::grpc_handler::outer::mverseouter::ClientTransactionRequest;
+use crate::server::synchronization::MerkleVerseServerState;
 use crate::server::{PeerServer, ServerCluster};
 use anyhow::{anyhow, Result};
+use base64::{engine::general_purpose, Engine as _};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use tonic::transport::Channel;
 use tonic::{IntoRequest, Status};
-use base64::{engine::general_purpose, Engine as _};
-use crate::grpc_handler::outer::mverseouter::ClientTransactionRequest;
-use crate::server::synchronization::MerkleVerseServerState;
 
 pub type MServerPointer = Rc<RefCell<MerkleVerseServer>>;
 
@@ -77,12 +77,14 @@ impl MerkleVerseServer {
                     client
                         .client_transaction(
                             ClientTransactionRequest {
-                                transaction: Some(mversegrpc::TransactionRequest{
+                                transaction: Some(mversegrpc::TransactionRequest {
                                     value: Some(cphead),
-                                    key: self.relative_index(Some(&srv)).unwrap().index,
-                                    transaction_type: mversegrpc::transaction_request::TransactionType::Update.into()
+                                    key: self.relative_index(Some(srv)).unwrap().index,
+                                    transaction_type:
+                                        mversegrpc::transaction_request::TransactionType::Update
+                                            .into(),
                                 }),
-                                auxiliary: None // TODO: make auxiliary a signature of the head
+                                auxiliary: None, // TODO: make auxiliary a signature of the head
                             }
                             .into_request(),
                         )
@@ -124,9 +126,11 @@ impl MerkleVerseServer {
             connection_string: format!("127.0.0.1:{}", config.outer_port),
             parallel: None,
             superior: None,
-            private_key: PrivateKey::try_from(general_purpose::STANDARD.decode(&config.private_key)?)?,
-            public_key: PublicKey::try_from( general_purpose::STANDARD.decode(&config.pub_key)?)?,
-            state: Arc::new(Mutex::new(MerkleVerseServerState::default()))
+            private_key: PrivateKey::try_from(
+                general_purpose::STANDARD.decode(&config.private_key)?,
+            )?,
+            public_key: PublicKey::try_from(general_purpose::STANDARD.decode(&config.pub_key)?)?,
+            state: Arc::new(Mutex::new(MerkleVerseServerState::default())),
         })
     }
 
@@ -173,7 +177,7 @@ impl MerkleVerseServer {
                     superiors.push(servers[j].1.clone());
                 }
             }
-            if superiors.len() > 0 {
+            if !superiors.is_empty() {
                 server.superior = Some(ServerCluster::from(superiors));
             }
 
@@ -187,12 +191,12 @@ impl MerkleVerseServer {
             let mut parallels: Vec<MServerPointer> = vec![];
             let prf = server.prefix.to_binstring()?;
             for ns in prefix_map.get(&prf).unwrap() {
-                if !Rc::ptr_eq(&ns, &s) && ns.borrow().prefix.length == server.prefix.length {
+                if !Rc::ptr_eq(ns, &s) && ns.borrow().prefix.length == server.prefix.length {
                     parallels.push(ns.clone());
                 }
             }
 
-            if parallels.len() > 0 {
+            if !parallels.is_empty() {
                 server.parallel = Some(ServerCluster::from(parallels));
             }
 

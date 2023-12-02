@@ -1,20 +1,20 @@
+use crate::grpc_handler::inner::mversegrpc::transaction_request;
+use crate::grpc_handler::outer::mverseouter::{ClientTransactionRequest, PeerTransactionRequest};
+use crate::grpc_handler::outer::TransactionRequest;
+use crate::server::{Index, ServerId};
+use anyhow::{anyhow, Result};
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
-use std::ops::Deref;
-use std::sync::Arc;
-use anyhow::{anyhow, Result};
-use crate::grpc_handler::inner::mversegrpc::transaction_request;
-use crate::grpc_handler::outer::mverseouter::{PeerTransactionRequest, ClientTransactionRequest};
-use crate::grpc_handler::outer::TransactionRequest;
-use crate::server::{Index, PeerServer, ServerId};
+
+
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TransactionSource {
     Peer(ServerId),
-    Client
+    Client,
 }
 
-impl Hash for TransactionSource{
+impl Hash for TransactionSource {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
             TransactionSource::Peer(_) => "Peer".hash(state),
@@ -27,10 +27,10 @@ impl Hash for TransactionSource{
 pub enum TransactionOp {
     Register(Index, Vec<u8>),
     Update(Index, Vec<u8>),
-    Delete(Index)
+    Delete(Index),
 }
 
-impl TransactionOp{
+impl TransactionOp {
     pub fn to_raw(&self) -> (Vec<u8>, Option<Vec<u8>>) {
         match self {
             Self::Register(index, value) => (index.index.clone(), Some(value.clone())),
@@ -45,24 +45,22 @@ impl TryFrom<TransactionRequest> for TransactionOp {
 
     fn try_from(request: TransactionRequest) -> Result<Self, Self::Error> {
         Ok(match request.transaction_type() {
-                transaction_request::TransactionType::Update => {
-                    Self::Update(
-                        request.key.into(),
-                        request.value.ok_or(anyhow!("Value must be provided for an Update operation!"))?
-                    )
-                }
-                transaction_request::TransactionType::Delete => {
-                    Self::Delete(request.key.into())
-                }
+            transaction_request::TransactionType::Update => Self::Update(
+                request.key.into(),
+                request
+                    .value
+                    .ok_or(anyhow!("Value must be provided for an Update operation!"))?,
+            ),
+            transaction_request::TransactionType::Delete => Self::Delete(request.key.into()),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct Transaction{
+pub struct Transaction {
     pub source: TransactionSource,
     pub operation: TransactionOp,
-    pub auxiliary: Option<Vec<u8>>
+    pub auxiliary: Option<Vec<u8>>,
 }
 
 impl Hash for Transaction {
@@ -73,23 +71,27 @@ impl Hash for Transaction {
 }
 
 impl Transaction {
-    fn from_peer(trans: PeerTransactionRequest) -> Result<Self>{
+    fn from_peer(trans: PeerTransactionRequest) -> Result<Self> {
         Ok(Self {
             auxiliary: trans.auxiliary,
             source: TransactionSource::Peer(trans.server_id.into()),
             operation: TransactionOp::try_from(
-                trans.transaction.ok_or(anyhow!("A valid transaction must be provided"))?
-            )?
+                trans
+                    .transaction
+                    .ok_or(anyhow!("A valid transaction must be provided"))?,
+            )?,
         })
     }
 
-    fn from_client(trans: ClientTransactionRequest) -> Result<Self>{
-        Ok(Self{
+    fn from_client(trans: ClientTransactionRequest) -> Result<Self> {
+        Ok(Self {
             auxiliary: trans.auxiliary,
             source: TransactionSource::Client,
             operation: TransactionOp::try_from(
-                trans.transaction.ok_or(anyhow!("A valid transaction must be provided"))?
-            )?
+                trans
+                    .transaction
+                    .ok_or(anyhow!("A valid transaction must be provided"))?,
+            )?,
         })
     }
 }
@@ -101,10 +103,12 @@ impl From<&Transaction> for TransactionRequest {
             key,
             value,
             transaction_type: match &transaction.operation {
-                TransactionOp::Register(_, _) => transaction_request::TransactionType::Update.into(),
+                TransactionOp::Register(_, _) => {
+                    transaction_request::TransactionType::Update.into()
+                }
                 TransactionOp::Update(_, _) => transaction_request::TransactionType::Update.into(),
                 TransactionOp::Delete(_) => transaction_request::TransactionType::Delete.into(),
-            }
+            },
         }
     }
 }
@@ -117,18 +121,25 @@ pub struct TransactionPool {
 impl TransactionPool {
     pub fn new() -> Self {
         Self {
-            existence_set: HashMap::new()
+            existence_set: HashMap::new(),
         }
     }
 
-    pub fn insert_peer(&mut self, req: PeerTransactionRequest) -> Result<Option<()>>{
+    pub fn insert_peer(&mut self, req: PeerTransactionRequest) -> Result<Option<()>> {
         self.insert_transaction(
-            req.epoch.clone().ok_or(anyhow!("An epoch number must be provided!"))?.epoch,
-            Transaction::from_peer(req)?
+            req.epoch
+                .clone()
+                .ok_or(anyhow!("An epoch number must be provided!"))?
+                .epoch,
+            Transaction::from_peer(req)?,
         )
     }
 
-    pub fn insert_client(&mut self, epoch: u64, req: ClientTransactionRequest) -> Result<Option<()>> {
+    pub fn insert_client(
+        &mut self,
+        epoch: u64,
+        req: ClientTransactionRequest,
+    ) -> Result<Option<()>> {
         self.insert_transaction(epoch, Transaction::from_client(req)?)
     }
 
@@ -138,26 +149,26 @@ impl TransactionPool {
 
     pub fn purge_before(&mut self, epoch: u64) -> Result<()> {
         let mut to_remove = vec![];
-        for (ep, _) in self.existence_set.iter(){
+        for (ep, _) in self.existence_set.iter() {
             if *ep < epoch {
                 to_remove.push(*ep);
             }
         }
-        for ep in to_remove{
+        for ep in to_remove {
             self.existence_set.remove(&ep);
         }
         Ok(())
     }
 
     fn insert_transaction(&mut self, epoch: u64, transaction: Transaction) -> Result<Option<()>> {
-        let haset = match self.existence_set.get_mut(&epoch){
+        let haset = match self.existence_set.get_mut(&epoch) {
             Some(v) => v,
             None => {
                 self.existence_set.insert(epoch, HashSet::new());
                 self.existence_set.get_mut(&epoch).unwrap() // this should not fail
             }
         };
-        if haset.contains(&transaction){
+        if haset.contains(&transaction) {
             return Ok(Some(())); // the transaction exists
         }
         haset.insert(transaction);

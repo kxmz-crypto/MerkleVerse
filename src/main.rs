@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
 
     let server_cl = server.clone();
     let epoch_loop = tokio::spawn(async move {
-        &server_cl.epoch_loop().await;
+        server_cl.epoch_loop().await;
     });
 
     eprintln!("Server starting at {}", conn);

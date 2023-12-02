@@ -1,10 +1,10 @@
-use crate::server::MerkleVerseServer;
+
 use crate::utils::{b64_to_loc, binary_string};
 use anyhow::Result;
 use config::{Config, ConfigError, Environment, File};
-use serde::de::Unexpected::Str;
+
 use serde::Deserialize;
-use std::collections::HashMap;
+
 use std::path::Path;
 
 #[derive(Debug, Deserialize)]
@@ -44,7 +44,7 @@ impl Server {
         match (&self.prefix, self.prefix_length) {
             (Some(pref), Some(len)) => {
                 let len_siz = usize::try_from(len).unwrap();
-                Ok(binary_string(&b64_to_loc(&pref, len_siz)?, len_siz))
+                Ok(binary_string(&b64_to_loc(pref, len_siz)?, len_siz))
             }
             _ => Ok(String::new()),
         }

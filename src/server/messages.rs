@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use crate::server::PeerServer;
+use std::sync::Arc;
 
 struct Prepare {
     epoch: u32,
