@@ -1,7 +1,7 @@
 use crate::grpc_handler::inner::{mversegrpc, MerkleProviderClient};
 use crate::grpc_handler::outer::mverseouter::{ClientTransactionRequest, Empty, PeerCommitRequest, PeerPrepareRequest, PeerTransactionRequest};
 use crate::server;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 pub use mversegrpc::{
     GetMerkleRootRequest, GetMerkleRootResponse, LookUpHistoryResponse, LookUpLatestRequest,
     LookUpLatestResponse, LookupHistoryRequest, TransactionRequest
@@ -119,7 +119,22 @@ impl MerkleVerse for server::MerkleVerseServer {
     }
 
     async fn peer_prepare(&self, request: Request<PeerPrepareRequest>) -> Result<Response<Empty>, Status> {
-        todo!()
+        let inn_req= request.into_inner();
+        self.receive_prepare(
+            inn_req.epoch
+                .ok_or(anyhow!("An epoch number must be provided!"))
+                .map_err(err_transform)?
+                .epoch,
+
+            inn_req.peer_identity
+                .ok_or(anyhow!("A peer identity must be provided!"))
+                .map_err(err_transform)?
+                .server_id
+                .into()
+        )
+            .await
+            .map_err(err_transform)?;
+        Ok(Response::new(Empty{}))
     }
 
     async fn peer_commit(&self, request: Request<PeerCommitRequest>) -> Result<Response<Empty>, Status> {

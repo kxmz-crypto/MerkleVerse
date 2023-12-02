@@ -17,7 +17,7 @@ pub struct MultiSig{
     pub signatures: HashMap<ServerId, Signature>
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Copy, Clone)]
 pub enum RunState{
     Prepare(u64),
     #[default]
@@ -72,11 +72,15 @@ impl MerkleVerseServer {
         Ok(())
     }
 
-    pub async fn receive_prepare(&self, epoch: u64, server_id: &ServerId) -> Result<()> {
-        let mut serv_state = self.state.lock().unwrap();
-        let mut peer_state = serv_state.peer_states.get_mut(server_id).unwrap();
-        peer_state.run_state = RunState::Prepare(epoch);
-        if !matches!(serv_state.run_state, RunState::Prepare(_)){
+    pub async fn receive_prepare(&self, epoch: u64, server_id: ServerId) -> Result<()> {
+        let serv_runstate = {
+            let mut serv_state = self.state.lock().unwrap();
+            let mut peer_state = serv_state.peer_states.get_mut(&server_id).unwrap();
+            peer_state.run_state = RunState::Prepare(epoch);
+            serv_state.run_state
+        };
+
+        if !matches!(serv_runstate, RunState::Prepare(_)){
             self.broadcast_prepare().await?;
         }
         Ok(())

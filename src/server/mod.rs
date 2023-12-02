@@ -98,7 +98,7 @@ pub struct MerkleVerseServer {
     epoch_interval: u32,
     private_key: PrivateKey,
     public_key: PublicKey,
-    state: Arc<Mutex<MerkleVerseServerState>>
+    state: Arc<Mutex<MerkleVerseServerState>> // TODO: consider using a RwLock instead
 }
 
 
