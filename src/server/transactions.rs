@@ -100,10 +100,6 @@ impl From<&Transaction> for TransactionRequest {
         Self {
             key,
             value,
-            origin: match &transaction.source {
-                TransactionSource::Peer(id) => transaction_request::Origin::Server.into(),
-                TransactionSource::Client => transaction_request::Origin::Client.into(),
-            },
             transaction_type: match &transaction.operation {
                 TransactionOp::Register(_, _) => transaction_request::TransactionType::Update.into(),
                 TransactionOp::Update(_, _) => transaction_request::TransactionType::Update.into(),

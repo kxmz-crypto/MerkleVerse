@@ -52,7 +52,7 @@ impl MerkleVerseServer {
         };
         if let Some(servers) = &self.parallel {
             let mut futures = vec![];
-            for srv in &servers.servers {
+            for (_, srv) in &servers.servers {
                 let srv = srv.clone();
                 let mut client = srv.get_client().await?;
                 let fut = async move {
@@ -88,7 +88,7 @@ impl MerkleVerseServer {
 
     pub async fn sign_and_broadcast(&self) -> Result<()> {
         /// Signs the current tree root with BLS, and broadcasts it to the parallel servers.
-        let (epoch, sig) = {
+        let (epoch, sig, head) = {
             let mut serv_state = self.state.lock().unwrap();
             let sig = self.private_key.bls.sign(&serv_state.current_root);
             let cur_epoch = serv_state.current_epoch;
@@ -108,18 +108,20 @@ impl MerkleVerseServer {
                     serv_state.multi_sigs.insert(cur_epoch, multi_sig);
                 }
             }
-            (cur_epoch, sig)
+            (cur_epoch, sig, serv_state.current_root.clone())
         };
         if let Some(servers) = &self.parallel {
             let mut futures = vec![];
-            for srv in &servers.servers {
+            for (_, srv) in &servers.servers {
                 let srv = srv.clone();
                 let mut client = srv.get_client().await?;
+                let h = head.clone();
                 let fut = async move {
                     client.peer_commit(PeerCommitRequest{
                         peer_identity: Some(self.server_identity()),
                         epoch: Some(Epoch{ epoch }),
                         signature: sig.as_bytes().to_vec(),
+                        head: h
                     }).await
                 };
                 futures.push(fut);

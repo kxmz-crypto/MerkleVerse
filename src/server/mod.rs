@@ -2,7 +2,9 @@ mod messages;
 mod mverse;
 mod synchronization;
 mod transactions;
+mod validation;
 
+use std::collections::HashMap;
 use crate::utils;
 
 use crate::server::mverse::MServerPointer;
@@ -10,39 +12,8 @@ use anyhow::Result;
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex};
 use bls_signatures::Serialize;
+use validation::{PrivateKey, PublicKey};
 use crate::server::synchronization::MerkleVerseServerState;
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-struct PublicKey{
-    raw: Vec<u8>,
-    pub bls: bls_signatures::PublicKey
-}
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-struct PrivateKey{
-    raw: Vec<u8>,
-    pub bls: bls_signatures::PrivateKey
-}
-
-impl TryFrom<Vec<u8>> for PrivateKey {
-    type Error = anyhow::Error;
-    fn try_from(value: Vec<u8>) -> std::result::Result<Self, Self::Error> {
-        Ok(Self {
-            bls: bls_signatures::PrivateKey::from_bytes(&value)?,
-            raw: value,
-        })
-    }
-}
-
-impl TryFrom<Vec<u8>> for PublicKey {
-    type Error = anyhow::Error;
-    fn try_from(value: Vec<u8>) -> std::result::Result<Self, Self::Error> {
-        Ok(Self {
-            bls: bls_signatures::PublicKey::from_bytes(&value)?,
-            raw: value,
-        })
-    }
-}
 
 struct Signature {
     signature: Vec<u8>,
@@ -66,7 +37,13 @@ pub struct PeerServer {
 #[derive(Debug, Clone)]
 struct ServerCluster {
     prefix: Option<Index>,
-    servers: Vec<PeerServer>,
+    servers: HashMap<ServerId, PeerServer>,
+}
+
+impl ServerCluster {
+    fn get_server(&self, id: &ServerId) -> Option<&PeerServer> {
+        self.servers.get(id)
+    }
 }
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -142,14 +119,14 @@ impl From<Vec<MServerPointer>> for ServerCluster {
                 .iter()
                 .map(|x| {
                     let srv = x.borrow();
-                    PeerServer {
+                    (srv.id.clone(), PeerServer {
                         connection_string: format!("http://{}", srv.connection_string.clone()),
                         prefix: srv.prefix.clone(),
                         length: srv.length,
                         epoch_interval: srv.epoch_interval,
                         id: srv.id.clone(),
                         public_key: srv.public_key.clone(),
-                    }
+                    })
                 })
                 .collect(),
         }

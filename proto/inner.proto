@@ -18,13 +18,8 @@ message TransactionRequest {
     Update = 0;
     Delete = 1;
   }
-  enum Origin{
-    Client = 0;
-    Server = 1;
-  }
   TransactionType transaction_type = 1;
   bytes key = 2;
-  Origin origin = 3;
   optional bytes value = 4;
 }
 

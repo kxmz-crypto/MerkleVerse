@@ -66,7 +66,7 @@ impl MerkleVerseServer {
         );
         if let Some(servers) = &self.superior {
             let mut futures = vec![];
-            for srv in &servers.servers {
+            for (_, srv) in &servers.servers {
                 eprintln!(
                     "Triggering epoch on superior server: {:?}",
                     srv.connection_string
@@ -80,7 +80,6 @@ impl MerkleVerseServer {
                                 transaction: Some(mversegrpc::TransactionRequest{
                                     value: Some(cphead),
                                     key: self.relative_index(Some(&srv)).unwrap().index,
-                                    origin: mversegrpc::transaction_request::Origin::Server.into(),
                                     transaction_type: mversegrpc::transaction_request::TransactionType::Update.into()
                                 }),
                                 auxiliary: None // TODO: make auxiliary a signature of the head
