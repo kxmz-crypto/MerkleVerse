@@ -4,17 +4,23 @@ use crate::server;
 use anyhow::Result;
 pub use mversegrpc::{
     GetMerkleRootRequest, GetMerkleRootResponse, LookUpHistoryResponse, LookUpLatestRequest,
-    LookUpLatestResponse, LookupHistoryRequest, TransactionRequest, TransactionResponse,
+    LookUpLatestResponse, LookupHistoryRequest, TransactionRequest
 };
-pub use mverseouter::merkle_verse_client::MerkleVerseClient;
 pub use mverseouter::{
     merkle_verse_server::{MerkleVerse, MerkleVerseServer},
+    merkle_verse_client::MerkleVerseClient,
     ServerInformationResponse,
+    TransactionResponse,
+    transaction_response::TransactionResult
 };
 use tonic::{IntoRequest, Request, Response, Status};
 
 pub mod mverseouter {
     tonic::include_proto!("mverseouter");
+}
+
+fn err_transform(e: anyhow::Error) -> Status {
+    Status::internal(e.to_string())
 }
 
 #[tonic::async_trait]
@@ -38,23 +44,8 @@ impl MerkleVerse for server::MerkleVerseServer {
         let res: LookUpHistoryResponse = inn_client
             .look_up_history(inn_req.into_request())
             .await?
-            .into_inner()
-            .into();
+            .into_inner();
 
-        Ok(Response::new(res))
-    }
-
-    async fn transaction(
-        &self,
-        request: Request<TransactionRequest>,
-    ) -> Result<Response<TransactionResponse>, Status> {
-        let mut inn_client = self.get_inner_client().await?;
-        let inn_req: mversegrpc::TransactionRequest = request.into_inner().into();
-        let res: TransactionResponse = inn_client
-            .transaction(inn_req.into_request())
-            .await?
-            .into_inner()
-            .into();
         Ok(Response::new(res))
     }
 
@@ -67,8 +58,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         let res: GetMerkleRootResponse = inn_client
             .get_current_root(inn_req.into_request())
             .await?
-            .into_inner()
-            .into();
+            .into_inner();
         let rsp = GetMerkleRootResponse { head: res.head };
         Ok(Response::new(rsp))
     }
@@ -82,8 +72,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         let res: GetMerkleRootResponse = inn_client
             .get_root(inn_req.into_request())
             .await?
-            .into_inner()
-            .into();
+            .into_inner();
         let rsp = GetMerkleRootResponse { head: res.head };
         Ok(Response::new(rsp))
     }
@@ -97,24 +86,43 @@ impl MerkleVerse for server::MerkleVerseServer {
         let res = inn_client
             .look_up_latest(inn_req.into_request())
             .await?
-            .into_inner()
-            .into();
+            .into_inner();
         Ok(Response::new(res))
     }
 
-    async fn client_transaction(&self, request: Request<ClientTransactionRequest>) -> std::result::Result<Response<TransactionResponse>, Status> {
+    async fn client_transaction(&self, request: Request<ClientTransactionRequest>) -> Result<Response<TransactionResponse>, Status> {
+        let inn_req= request.into_inner();
+        let res = self.receive_client_transaction(inn_req)
+            .await
+            .map_err(err_transform)
+            .map(|res| TransactionResponse{
+                status: match res {
+                    None => {TransactionResult::Ok}
+                    Some(_) => {TransactionResult::Duplicate}
+                }.into()
+            })?;
+        Ok(Response::new(res))
+    }
+
+    async fn peer_transaction(&self, request: Request<PeerTransactionRequest>) -> Result<Response<TransactionResponse>, Status> {
+        let inn_req= request.into_inner();
+        let res = self.receive_peer_transaction(inn_req)
+            .await
+            .map_err(err_transform)
+            .map(|res| TransactionResponse{
+                status: match res {
+                    None => {TransactionResult::Ok}
+                    Some(_) => {TransactionResult::Duplicate}
+                }.into()
+            })?;
+        Ok(Response::new(res))
+    }
+
+    async fn peer_prepare(&self, request: Request<PeerPrepareRequest>) -> Result<Response<Empty>, Status> {
         todo!()
     }
 
-    async fn peer_transaction(&self, request: Request<PeerTransactionRequest>) -> std::result::Result<Response<TransactionResponse>, Status> {
-        todo!()
-    }
-
-    async fn peer_prepare(&self, request: Request<PeerPrepareRequest>) -> std::result::Result<Response<Empty>, Status> {
-        todo!()
-    }
-
-    async fn peer_commit(&self, request: Request<PeerCommitRequest>) -> std::result::Result<Response<Empty>, Status> {
+    async fn peer_commit(&self, request: Request<PeerCommitRequest>) -> Result<Response<Empty>, Status> {
         todo!()
     }
 }

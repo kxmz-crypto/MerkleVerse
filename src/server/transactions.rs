@@ -73,10 +73,10 @@ impl Hash for Transaction {
 }
 
 impl Transaction {
-    fn from_peer(trans: PeerTransactionRequest, source: ServerId) -> Result<Self>{
+    fn from_peer(trans: PeerTransactionRequest) -> Result<Self>{
         Ok(Self {
             auxiliary: trans.auxiliary,
-            source: TransactionSource::Peer(source),
+            source: TransactionSource::Peer(trans.server_id.into()),
             operation: TransactionOp::try_from(
                 trans.transaction.ok_or(anyhow!("A valid transaction must be provided"))?
             )?
@@ -125,10 +125,10 @@ impl TransactionPool {
         }
     }
 
-    pub fn insert_peer(&mut self, req: PeerTransactionRequest, source: ServerId) -> Result<Option<()>>{
+    pub fn insert_peer(&mut self, req: PeerTransactionRequest) -> Result<Option<()>>{
         self.insert_transaction(
             req.epoch.clone().ok_or(anyhow!("An epoch number must be provided!"))?.epoch,
-            Transaction::from_peer(req, source)?
+            Transaction::from_peer(req)?
         )
     }
 

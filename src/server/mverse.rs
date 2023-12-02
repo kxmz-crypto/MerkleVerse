@@ -12,6 +12,7 @@ use std::sync::{Arc, Mutex};
 use tonic::transport::Channel;
 use tonic::{IntoRequest, Status};
 use base64::{engine::general_purpose, Engine as _};
+use crate::grpc_handler::outer::mverseouter::ClientTransactionRequest;
 use crate::server::synchronization::MerkleVerseServerState;
 
 pub type MServerPointer = Rc<RefCell<MerkleVerseServer>>;
@@ -74,13 +75,15 @@ impl MerkleVerseServer {
                 let cphead = res.head.clone();
                 futures.push(async move {
                     client
-                        .transaction(
-                            mversegrpc::TransactionRequest {
-                                value: Some(cphead),
-                                key: self.relative_index(Some(&srv)).unwrap().index,
-                                origin: mversegrpc::transaction_request::Origin::Server.into(),
-                                transaction_type:
-                                    mversegrpc::transaction_request::TransactionType::Update.into(),
+                        .client_transaction(
+                            ClientTransactionRequest {
+                                transaction: Some(mversegrpc::TransactionRequest{
+                                    value: Some(cphead),
+                                    key: self.relative_index(Some(&srv)).unwrap().index,
+                                    origin: mversegrpc::transaction_request::Origin::Server.into(),
+                                    transaction_type: mversegrpc::transaction_request::TransactionType::Update.into()
+                                }),
+                                auxiliary: None // TODO: make auxiliary a signature of the head
                             }
                             .into_request(),
                         )

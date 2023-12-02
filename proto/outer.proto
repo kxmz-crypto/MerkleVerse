@@ -9,9 +9,8 @@ service MerkleVerse {
   rpc GetRoot(mversegrpc.GetMerkleRootRequest) returns (mversegrpc.GetMerkleRootResponse) {}
   rpc GetCurrentRoot(Empty) returns (mversegrpc.GetMerkleRootResponse) {}
   rpc LookUpLatest(mversegrpc.LookUpLatestRequest) returns (mversegrpc.LookUpLatestResponse) {}
-  rpc Transaction(mversegrpc.TransactionRequest) returns (mversegrpc.TransactionResponse) {}
-  rpc ClientTransaction(ClientTransactionRequest) returns (mversegrpc.TransactionResponse) {}
-  rpc PeerTransaction(PeerTransactionRequest) returns (mversegrpc.TransactionResponse) {}
+  rpc ClientTransaction(ClientTransactionRequest) returns (TransactionResponse) {}
+  rpc PeerTransaction(PeerTransactionRequest) returns (TransactionResponse) {}
   rpc PeerPrepare(PeerPrepareRequest) returns (Empty) {}
   rpc PeerCommit(PeerCommitRequest) returns (Empty) {}
   rpc LookUpHistory(mversegrpc.LookupHistoryRequest) returns (mversegrpc.LookUpHistoryResponse) {}
@@ -47,6 +46,15 @@ message ClientTransactionRequest {
 message PeerTransactionRequest {
   mversegrpc.Epoch epoch = 1;
   mversegrpc.TransactionRequest transaction = 2;
-  bytes signature = 3;
-  optional bytes auxiliary = 4;
+  string server_id = 3;
+  bytes signature = 4;
+  optional bytes auxiliary = 5;
+}
+
+message TransactionResponse {
+  enum TransactionResult {
+    OK = 0;
+    DUPLICATE = 1;
+  }
+  TransactionResult status = 1;
 }

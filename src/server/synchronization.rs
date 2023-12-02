@@ -158,7 +158,11 @@ impl MerkleVerseServer {
     pub async fn watch_trigger_prepare(&self) -> Result<()> {
         /// watches the current epoch, and triggers the prepare phase when the epoch interval is reached.
         /// also might trigger prepare if a certain number of transactions are received.
-        todo!()
+        /// loop every 10 seconds, trigger commit if the epoch interval is reached.
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
+            self.broadcast_prepare().await?;
+        }
     }
 
     pub async fn trigger_commit(&self) -> Result<()> {
@@ -178,21 +182,19 @@ impl MerkleVerseServer {
         Ok(())
     }
 
-    pub async fn receive_peer_transaction(&self, req: PeerTransactionRequest, source: ServerId) -> Result<()> {
+    pub async fn receive_peer_transaction(&self, req: PeerTransactionRequest) -> Result<Option<()>> {
         // receives a transaction from a peer server, and inserts it into the transaction pool.
         // Note: currently, if the transaction already exists, it is not inserted, and no error message is returned.
         let mut serv_state = self.state.lock().unwrap();
-        serv_state.transaction_pool.insert_peer(req, source)?;
-        Ok(())
+        serv_state.transaction_pool.insert_peer(req)
     }
 
-    pub async fn receive_client_transaction(&self, req: ClientTransactionRequest) -> Result<()> {
+    pub async fn receive_client_transaction(&self, req: ClientTransactionRequest) -> Result<Option<()>> {
         let mut serv_state = self.state.lock().unwrap();
         let epoch = match serv_state.run_state {
             RunState::Prepare(_) => {serv_state.current_epoch+1}
             RunState::Normal => {serv_state.current_epoch}
         };
-        serv_state.transaction_pool.insert_client(epoch, req)?;
-        Ok(())
+        serv_state.transaction_pool.insert_client(epoch, req)
     }
 }

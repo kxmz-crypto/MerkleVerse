@@ -78,6 +78,12 @@ struct Index {
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub struct ServerId(pub String);
 
+impl From<String> for ServerId {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
 /// the `MerkleVerseServer` struct records the current server's location within the
 /// Merkle Verse system.
 #[derive(Debug, Clone)]
