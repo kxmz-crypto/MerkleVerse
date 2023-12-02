@@ -138,6 +138,18 @@ impl MerkleVerse for server::MerkleVerseServer {
     }
 
     async fn peer_commit(&self, request: Request<PeerCommitRequest>) -> Result<Response<Empty>, Status> {
-        todo!()
+        let inn_req= request.into_inner();
+        self.receive_signatures(
+            inn_req.epoch
+                .ok_or(anyhow!("An epoch number must be provided!"))
+                .map_err(err_transform)?
+                .epoch,
+
+            &inn_req.head,
+            &inn_req.signature
+        )
+            .await
+            .map_err(err_transform)?;
+        Ok(Response::new(Empty{}))
     }
 }
