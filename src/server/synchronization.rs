@@ -9,7 +9,13 @@ use crate::server::{MerkleVerseServer, ServerId};
 use anyhow::{anyhow, Result};
 use bls_signatures::{aggregate, Serialize, Signature};
 use std::collections::{HashMap};
+use tokio::time::Instant;
 use tonic::IntoRequest;
+
+const PREPARE_AFTER: u128 = 10000; // try to trigger prepare n milliseconds after the commit
+const LOOP_INTERVAL: u64 = 1000; // epoch watch loop interval in milliseconds
+const MIN_TRANSACTIONS: usize = 1; // minimum number of transactions to automatically trigger prepare
+const MAX_TRANSACTIONS: usize = 20; // automatically trigger prepare if the number of transactions reaches this number
 
 #[derive(Debug)]
 pub struct MultiSig {
@@ -34,6 +40,7 @@ pub struct MerkleVerseServerState {
     run_state: RunState,
     peer_states: HashMap<ServerId, MerkleVerseServerState>,
     transaction_pool: TransactionPool,
+    last_commit_time: Option<Instant>
 }
 
 impl MerkleVerseServer {
@@ -184,8 +191,27 @@ impl MerkleVerseServer {
         /// also might trigger prepare if a certain number of transactions are received.
         /// loop every 10 seconds, trigger commit if the epoch interval is reached.
         loop {
-            tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
-            self.broadcast_prepare().await?;
+            tokio::time::sleep(tokio::time::Duration::from_millis(LOOP_INTERVAL)).await;
+
+            let trigger_prep = {
+                let serv_state = self.state.lock().map_err(|_| anyhow!("Failed to lock state"))?;
+                if matches!(serv_state.run_state, RunState::Prepare(_)) {
+                    continue;
+                }
+                let t_trigger = match serv_state.last_commit_time{
+                    Some(t) => t.elapsed().as_millis() > PREPARE_AFTER,
+                    None => true
+                };
+                let transaction_cnt = match serv_state.transaction_pool.get_epoch(serv_state.current_epoch) {
+                    Some(transactions) => transactions.len(),
+                    None => 0
+                };
+                (t_trigger || transaction_cnt >= MAX_TRANSACTIONS) && transaction_cnt >= MIN_TRANSACTIONS
+            };
+
+            if trigger_prep {
+                self.broadcast_prepare().await?;
+            }
         }
     }
 

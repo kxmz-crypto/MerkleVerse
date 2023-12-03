@@ -96,19 +96,8 @@ impl MerkleVerseServer {
         Ok(())
     }
 
-    pub async fn epoch_loop(&self) -> Result<()> {
-        eprintln!("Epoch loop started");
-        loop {
-            tokio::time::sleep(tokio::time::Duration::from_millis(
-                self.epoch_interval.into(),
-            ))
-            .await;
-            self.trigger_epoch().await?;
-        }
-    }
-
     /// Generate from a single Server config
-    pub async fn from_config(config: &config::Server) -> Result<Self> {
+    pub async fn from_config(config: &config::ServerConfig) -> Result<Self> {
         Ok(Self {
             epoch_interval: config.epoch_interval,
             id: ServerId(config.id.clone()),
@@ -129,7 +118,10 @@ impl MerkleVerseServer {
             private_key: PrivateKey::try_from(
                 general_purpose::STANDARD.decode(&config.private_key)?,
             )?,
-            public_key: PublicKey::try_from(general_purpose::STANDARD.decode(&config.pub_key)?)?,
+            public_key: PublicKey::new(
+                &general_purpose::STANDARD.decode(&config.bls_pub_key)?,
+                &general_purpose::STANDARD.decode(&config.dalek_pub_key)?,
+            )?,
             state: Arc::new(Mutex::new(MerkleVerseServerState::default())),
         })
     }

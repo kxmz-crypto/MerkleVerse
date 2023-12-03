@@ -8,13 +8,14 @@ use ed25519_dalek::{Signer, Verifier};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
+// For public keys, the bls and dalek keys are specified separately.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PublicKey {
-    raw: Vec<u8>,
     pub bls: bls_signatures::PublicKey,
     pub dalek: ed25519_dalek::VerifyingKey,
 }
 
+// For private keys, the bls and dalek private keys are derived deterministically from the raw key.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PrivateKey {
     raw: Vec<u8>,
@@ -35,13 +36,20 @@ impl TryFrom<Vec<u8>> for PrivateKey {
     }
 }
 
-impl TryFrom<Vec<u8>> for PublicKey {
-    type Error = anyhow::Error;
-    fn try_from(value: Vec<u8>) -> std::result::Result<Self, Self::Error> {
+impl PrivateKey {
+    pub fn public_key(&self) -> PublicKey {
+        PublicKey {
+            bls: self.bls.public_key(),
+            dalek: self.dalek.verifying_key()
+        }
+    }
+}
+
+impl PublicKey {
+    pub fn new(bls: &Vec<u8>, dalek: &Vec<u8>) -> Result<Self> {
         Ok(Self {
-            bls: bls_signatures::PublicKey::from_bytes(&value)?,
-            dalek: ed25519_dalek::VerifyingKey::try_from(&value[0..32])?,
-            raw: value,
+            bls: bls_signatures::PublicKey::from_bytes(bls)?,
+            dalek: ed25519_dalek::VerifyingKey::try_from(&dalek[0..32])?,
         })
     }
 }

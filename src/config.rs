@@ -3,12 +3,12 @@ use crate::utils::{b64_to_loc, binary_string};
 use anyhow::Result;
 use config::{Config, ConfigError, Environment, File};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use std::path::Path;
 
-#[derive(Debug, Deserialize)]
-pub struct Server {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ServerConfig {
     pub id: String,
     pub outer_port: u16,
     pub outer_addr: String,
@@ -17,15 +17,27 @@ pub struct Server {
     pub prefix_length: Option<u32>,
     pub length: u32,
     pub epoch_interval: u32, // epoch interval in miliseconds
-    pub pub_key: String,
+    pub bls_pub_key: String,
+    pub dalek_pub_key: String,
     pub private_key: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct ServersConfig {
-    pub servers: Vec<Server>,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct PeerServerConfig {
+    pub connection_string: String,
     pub id: String,
-    // TODO: priv_key: String,
+    pub prefix: Option<String>,
+    pub length: Option<u32>,
+    pub epoch_interval: u32,
+    pub bls_pub_key: String,
+    pub dalek_pub_key: String,
+}
+
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ServersConfig {
+    pub server: ServerConfig,
+    pub peers: Vec<PeerServerConfig>,
 }
 
 impl ServersConfig {
@@ -39,15 +51,25 @@ impl ServersConfig {
     }
 }
 
-impl Server {
-    pub fn prefix_bin(&self) -> Result<String> {
-        match (&self.prefix, self.prefix_length) {
-            (Some(pref), Some(len)) => {
-                let len_siz = usize::try_from(len).unwrap();
-                Ok(binary_string(&b64_to_loc(pref, len_siz)?, len_siz))
-            }
-            _ => Ok(String::new()),
+fn prefix_bin(prefix: &Option<String>, length: &Option<u32>) -> Result<String> {
+    match (prefix, length) {
+        (Some(pref), Some(len)) => {
+            let len_siz = usize::try_from(*len).unwrap();
+            Ok(binary_string(&b64_to_loc(pref, len_siz)?, len_siz))
         }
+        _ => Ok(String::new()),
+    }
+}
+
+impl ServerConfig {
+    pub fn prefix_bin(&self) -> Result<String> {
+        prefix_bin(&self.prefix, &self.prefix_length)
+    }
+}
+
+impl PeerServerConfig {
+    pub fn prefix_bin(&self) -> Result<String> {
+        prefix_bin(&self.prefix, &self.length)
     }
 }
 
@@ -56,6 +78,7 @@ mod tests {
     use super::*;
     use anyhow::{anyhow, Result};
     use std::env;
+    use crate::server::MerkleVerseServer;
 
     #[tokio::test]
     async fn test_config() -> Result<()> {
