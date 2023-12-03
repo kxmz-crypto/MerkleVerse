@@ -7,7 +7,7 @@ mod validation;
 use crate::utils;
 use std::collections::HashMap;
 
-use crate::server::mverse::MServerPointer;
+use crate::server::mverse::PeerServerPointer;
 use crate::server::synchronization::MerkleVerseServerState;
 use anyhow::Result;
 
@@ -43,6 +43,21 @@ struct ServerCluster {
 impl ServerCluster {
     fn get_server(&self, id: &ServerId) -> Option<&PeerServer> {
         self.servers.get(id)
+    }
+
+    fn new() -> Self {
+        Self {
+            prefix: None,
+            servers: HashMap::new(),
+        }
+    }
+
+    fn len(&self) -> usize {
+        self.servers.len()
+    }
+
+    fn insert(&mut self, server: PeerServer) {
+        self.servers.insert(server.id.clone(), server);
     }
 }
 
@@ -104,8 +119,8 @@ impl From<Vec<u8>> for Index {
     }
 }
 
-impl From<Vec<MServerPointer>> for ServerCluster {
-    fn from(servers: Vec<MServerPointer>) -> Self {
+impl From<Vec<PeerServerPointer>> for ServerCluster {
+    fn from(servers: Vec<PeerServerPointer>) -> Self {
         Self {
             prefix: None,
             servers: servers

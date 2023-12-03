@@ -9,35 +9,30 @@ use std::path::Path;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServerConfig {
+    pub connection_string: String,
     pub id: String,
-    pub outer_port: u16,
-    pub outer_addr: String,
-    pub inner_port: u16,
     pub prefix: Option<String>,
     pub prefix_length: Option<u32>,
     pub length: u32,
     pub epoch_interval: u32, // epoch interval in miliseconds
     pub bls_pub_key: String,
     pub dalek_pub_key: String,
-    pub private_key: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct PeerServerConfig {
-    pub connection_string: String,
-    pub id: String,
-    pub prefix: Option<String>,
-    pub length: Option<u32>,
-    pub epoch_interval: u32,
-    pub bls_pub_key: String,
-    pub dalek_pub_key: String,
+pub struct LocalServerConfig {
+    pub server_config: ServerConfig,
+    pub outer_port: u16,
+    pub outer_addr: String,
+    pub inner_port: u16,
+    pub private_key: String,
 }
 
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServersConfig {
-    pub server: ServerConfig,
-    pub peers: Vec<PeerServerConfig>,
+    pub server: LocalServerConfig,
+    pub peers: Vec<ServerConfig>,
 }
 
 impl ServersConfig {
@@ -64,12 +59,6 @@ fn prefix_bin(prefix: &Option<String>, length: &Option<u32>) -> Result<String> {
 impl ServerConfig {
     pub fn prefix_bin(&self) -> Result<String> {
         prefix_bin(&self.prefix, &self.prefix_length)
-    }
-}
-
-impl PeerServerConfig {
-    pub fn prefix_bin(&self) -> Result<String> {
-        prefix_bin(&self.prefix, &self.length)
     }
 }
 
