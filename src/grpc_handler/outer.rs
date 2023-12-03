@@ -1,4 +1,4 @@
-use crate::grpc_handler::inner::{mversegrpc};
+use crate::grpc_handler::inner::mversegrpc;
 use crate::grpc_handler::outer::mverseouter::{
     ClientTransactionRequest, Empty, PeerCommitRequest, PeerPrepareRequest, PeerTransactionRequest,
 };

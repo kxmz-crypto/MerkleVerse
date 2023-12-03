@@ -61,8 +61,7 @@ impl ServerCluster {
     }
 }
 
-#[derive(Debug, Clone, Hash, Eq, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq, Default)]
 struct Index {
     index: Vec<u8>,
     length: u32,
@@ -93,8 +92,6 @@ pub struct MerkleVerseServer {
     public_key: PublicKey,
     state: Arc<Mutex<MerkleVerseServerState>>, // TODO: consider using a RwLock instead
 }
-
-
 
 impl Index {
     pub fn from_b64(b64: &str, length: u32) -> Result<Self> {

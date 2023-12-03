@@ -1,4 +1,3 @@
-
 use crate::utils::{b64_to_loc, binary_string};
 use anyhow::Result;
 use config::{Config, ConfigError, Environment, File};
@@ -27,7 +26,6 @@ pub struct LocalServerConfig {
     pub inner_port: u16,
     pub private_key: String,
 }
-
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServersConfig {
@@ -65,9 +63,9 @@ impl ServerConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::server::MerkleVerseServer;
     use anyhow::{anyhow, Result};
     use std::env;
-    use crate::server::MerkleVerseServer;
 
     #[tokio::test]
     async fn test_config() -> Result<()> {

@@ -6,8 +6,6 @@ use anyhow::{anyhow, Result};
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 
-
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TransactionSource {
     Peer(ServerId),
@@ -48,11 +46,14 @@ impl TryFrom<&TransactionRequest> for TransactionOp {
             transaction_request::TransactionType::Update => Self::Update(
                 request.key.clone().into(),
                 match &request.value {
-                    None => {Err(anyhow!("A valid value must be provided"))?}
-                    Some(e) => {anyhow::Ok(e)}
-                }?.clone()
+                    None => Err(anyhow!("A valid value must be provided"))?,
+                    Some(e) => anyhow::Ok(e),
+                }?
+                .clone(),
             ),
-            transaction_request::TransactionType::Delete => Self::Delete(request.key.clone().into()),
+            transaction_request::TransactionType::Delete => {
+                Self::Delete(request.key.clone().into())
+            }
         })
     }
 }
@@ -77,8 +78,8 @@ impl Transaction {
             auxiliary: trans.auxiliary.clone(),
             source: TransactionSource::Peer(trans.server_id.clone().into()),
             operation: TransactionOp::try_from(match &trans.transaction {
-                None => {Err(anyhow!("A valid transaction must be provided"))?}
-                Some(t) => {anyhow::Ok(t)}
+                None => Err(anyhow!("A valid transaction must be provided"))?,
+                Some(t) => anyhow::Ok(t),
             }?)?,
         })
     }
@@ -87,12 +88,10 @@ impl Transaction {
         Ok(Self {
             auxiliary: trans.auxiliary.clone(),
             source: TransactionSource::Client,
-            operation: TransactionOp::try_from(
-                match &trans.transaction {
-                    None => {Err(anyhow!("A valid transaction must be provided"))}
-                    Some(t) => {Ok(t)}
-                }?
-            )?,
+            operation: TransactionOp::try_from(match &trans.transaction {
+                None => Err(anyhow!("A valid transaction must be provided")),
+                Some(t) => Ok(t),
+            }?)?,
         })
     }
 }

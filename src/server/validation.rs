@@ -1,7 +1,7 @@
 use crate::grpc_handler::inner::mversegrpc;
 use crate::grpc_handler::outer::mverseouter::PeerTransactionRequest;
 
-use crate::server::{MerkleVerseServer};
+use crate::server::MerkleVerseServer;
 use anyhow::{anyhow, Result};
 use bls_signatures::Serialize;
 use ed25519_dalek::{Signer, Verifier};
@@ -40,7 +40,7 @@ impl PrivateKey {
     pub fn public_key(&self) -> PublicKey {
         PublicKey {
             bls: self.bls.public_key(),
-            dalek: self.dalek.verifying_key()
+            dalek: self.dalek.verifying_key(),
         }
     }
 }
@@ -89,7 +89,10 @@ impl MerkleVerseServer {
             .map_err(|e| anyhow!("Peer transaction signature is invalid: {}", e))
     }
 
-    pub fn sign_transaction(&self, transaction: &mversegrpc::TransactionRequest) -> Result<Vec<u8>> {
+    pub fn sign_transaction(
+        &self,
+        transaction: &mversegrpc::TransactionRequest,
+    ) -> Result<Vec<u8>> {
         // signs the transaction with dalek
         let mut hasher = DefaultHasher::new();
         transaction.hash(&mut hasher);

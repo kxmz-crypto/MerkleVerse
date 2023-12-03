@@ -4,11 +4,11 @@ use crate::grpc_handler::outer::mverseouter::{
     ServerIdentity,
 };
 use crate::grpc_handler::outer::TransactionRequest;
-use crate::server::transactions::{TransactionPool};
+use crate::server::transactions::TransactionPool;
 use crate::server::{MerkleVerseServer, ServerId};
 use anyhow::{anyhow, Result};
 use bls_signatures::{aggregate, Serialize, Signature};
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use tokio::time::Instant;
 use tonic::IntoRequest;
 
@@ -40,7 +40,7 @@ pub struct MerkleVerseServerState {
     run_state: RunState,
     peer_states: HashMap<ServerId, MerkleVerseServerState>,
     transaction_pool: TransactionPool,
-    last_commit_time: Option<Instant>
+    last_commit_time: Option<Instant>,
 }
 
 impl MerkleVerseServer {
@@ -68,9 +68,7 @@ impl MerkleVerseServer {
                     client
                         .peer_prepare(
                             PeerPrepareRequest {
-                                epoch: Some(Epoch {
-                                    epoch: cur_epoch as u64,
-                                }),
+                                epoch: Some(Epoch { epoch: cur_epoch }),
                                 peer_identity: Some(ServerIdentity {
                                     server_id: self.id.0.clone(),
                                 }),
@@ -194,19 +192,26 @@ impl MerkleVerseServer {
             tokio::time::sleep(tokio::time::Duration::from_millis(LOOP_INTERVAL)).await;
 
             let trigger_prep = {
-                let serv_state = self.state.lock().map_err(|_| anyhow!("Failed to lock state"))?;
+                let serv_state = self
+                    .state
+                    .lock()
+                    .map_err(|_| anyhow!("Failed to lock state"))?;
                 if matches!(serv_state.run_state, RunState::Prepare(_)) {
                     continue;
                 }
-                let t_trigger = match serv_state.last_commit_time{
+                let t_trigger = match serv_state.last_commit_time {
                     Some(t) => t.elapsed().as_millis() > PREPARE_AFTER,
-                    None => true
+                    None => true,
                 };
-                let transaction_cnt = match serv_state.transaction_pool.get_epoch(serv_state.current_epoch) {
+                let transaction_cnt = match serv_state
+                    .transaction_pool
+                    .get_epoch(serv_state.current_epoch)
+                {
                     Some(transactions) => transactions.len(),
-                    None => 0
+                    None => 0,
                 };
-                (t_trigger || transaction_cnt >= MAX_TRANSACTIONS) && transaction_cnt >= MIN_TRANSACTIONS
+                (t_trigger || transaction_cnt >= MAX_TRANSACTIONS)
+                    && transaction_cnt >= MIN_TRANSACTIONS
             };
 
             if trigger_prep {
@@ -259,24 +264,24 @@ impl MerkleVerseServer {
         if res.is_some() {
             return Ok(res);
         }
-        if let Some(parallels) = &self.parallel{
+        if let Some(parallels) = &self.parallel {
             let trans = req.transaction.unwrap();
             let signature = self.sign_transaction(&trans)?;
-            for (_, ps) in parallels.servers.iter(){
+            for (_, ps) in parallels.servers.iter() {
                 let pc = ps.clone();
                 let ts = trans.clone();
                 let sig = signature.clone();
                 tokio::spawn(async move {
                     let mut client = pc.get_client().await.unwrap();
-                    let res = client.peer_transaction(
-                        PeerTransactionRequest {
+                    let res = client
+                        .peer_transaction(PeerTransactionRequest {
                             transaction: Some(ts),
                             server_id: pc.id.0.clone(),
                             epoch: Some(Epoch { epoch }),
                             signature: sig,
                             auxiliary: None,
-                        }
-                    ).await;
+                        })
+                        .await;
                     if let Err(e) = res {
                         tracing::error!("Failed to send peer transaction to {}: {}", pc.id.0, e);
                     }

@@ -156,7 +156,8 @@ impl MerkleVerseServer {
         let mut peer_servers: Vec<(String, PeerServerPointer)> = vec![];
 
         for cfig in config.peers {
-            let pnt: PeerServerPointer = Rc::new(RefCell::new(PeerServer::from_config(&cfig).await?));
+            let pnt: PeerServerPointer =
+                Rc::new(RefCell::new(PeerServer::from_config(&cfig).await?));
             peer_servers.push((cfig.id.clone(), pnt.clone()));
 
             let prefix_bin = &cfig.prefix_bin()?;
@@ -187,13 +188,11 @@ impl MerkleVerseServer {
         for i in 0..peer_servers.len() {
             let peer_server = peer_servers[i].1.borrow();
             let pref = peer_server.prefix.to_binstring()?;
-            if peer_server.length == cur_srv.prefix.length
-                && pref.starts_with(&cur_pref) {
+            if peer_server.length == cur_srv.prefix.length && pref.starts_with(&cur_pref) {
                 superiors.push(peer_servers[i].1.clone());
             }
 
-            if peer_server.length == cur_srv.length
-                && pref == cur_pref {
+            if peer_server.length == cur_srv.length && pref == cur_pref {
                 parallels.push(peer_servers[i].1.clone());
             }
         }
