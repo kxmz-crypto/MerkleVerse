@@ -242,6 +242,7 @@ impl MerkleVerseServer {
         // receives a transaction from a peer server, and inserts it into the transaction pool.
         // Note: currently, if the transaction already exists, it is not inserted, and no error message is returned.
         let mut serv_state = self.state.lock().unwrap();
+        self.verify_peer_transaction(&req)?;
         serv_state.transaction_pool.insert_peer(req)
     }
 
@@ -254,6 +255,34 @@ impl MerkleVerseServer {
             RunState::Prepare(_) => serv_state.current_epoch + 1,
             RunState::Normal => serv_state.current_epoch,
         };
-        serv_state.transaction_pool.insert_client(epoch, req)
+        let res = serv_state.transaction_pool.insert_client(epoch, &req)?;
+        if res.is_some() {
+            return Ok(res);
+        }
+        if let Some(parallels) = &self.parallel{
+            let trans = req.transaction.unwrap();
+            let signature = self.sign_transaction(&trans)?;
+            for (_, ps) in parallels.servers.iter(){
+                let pc = ps.clone();
+                let ts = trans.clone();
+                let sig = signature.clone();
+                tokio::spawn(async move {
+                    let mut client = pc.get_client().await.unwrap();
+                    let res = client.peer_transaction(
+                        PeerTransactionRequest {
+                            transaction: Some(ts),
+                            server_id: pc.id.0.clone(),
+                            epoch: Some(Epoch { epoch }),
+                            signature: sig,
+                            auxiliary: None,
+                        }
+                    ).await;
+                    if let Err(e) = res {
+                        tracing::error!("Failed to send peer transaction to {}: {}", pc.id.0, e);
+                    }
+                });
+            }
+        }
+        Ok(res)
     }
 }

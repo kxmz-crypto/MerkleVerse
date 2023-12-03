@@ -63,7 +63,7 @@ impl Hash for mversegrpc::TransactionRequest {
 }
 
 impl MerkleVerseServer {
-    fn verify_peer_transaction(&self, transaction: &PeerTransactionRequest) -> Result<()> {
+    pub fn verify_peer_transaction(&self, transaction: &PeerTransactionRequest) -> Result<()> {
         // verifies the peer transaction with dalek
         let parallel = match &self.parallel {
             None => Err(anyhow!("Peer server does not exist!")),
@@ -89,7 +89,7 @@ impl MerkleVerseServer {
             .map_err(|e| anyhow!("Peer transaction signature is invalid: {}", e))
     }
 
-    fn sign_transaction(&self, transaction: &mversegrpc::TransactionRequest) -> Result<Vec<u8>> {
+    pub fn sign_transaction(&self, transaction: &mversegrpc::TransactionRequest) -> Result<Vec<u8>> {
         // signs the transaction with dalek
         let mut hasher = DefaultHasher::new();
         transaction.hash(&mut hasher);

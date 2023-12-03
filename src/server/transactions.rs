@@ -40,18 +40,19 @@ impl TransactionOp {
     }
 }
 
-impl TryFrom<TransactionRequest> for TransactionOp {
+impl TryFrom<&TransactionRequest> for TransactionOp {
     type Error = anyhow::Error;
 
-    fn try_from(request: TransactionRequest) -> Result<Self, Self::Error> {
+    fn try_from(request: &TransactionRequest) -> Result<Self, Self::Error> {
         Ok(match request.transaction_type() {
             transaction_request::TransactionType::Update => Self::Update(
-                request.key.into(),
-                request
-                    .value
-                    .ok_or(anyhow!("Value must be provided for an Update operation!"))?,
+                request.key.clone().into(),
+                match &request.value {
+                    None => {Err(anyhow!("A valid value must be provided"))?}
+                    Some(e) => {anyhow::Ok(e)}
+                }?.clone()
             ),
-            transaction_request::TransactionType::Delete => Self::Delete(request.key.into()),
+            transaction_request::TransactionType::Delete => Self::Delete(request.key.clone().into()),
         })
     }
 }
@@ -71,26 +72,26 @@ impl Hash for Transaction {
 }
 
 impl Transaction {
-    fn from_peer(trans: PeerTransactionRequest) -> Result<Self> {
+    fn from_peer(trans: &PeerTransactionRequest) -> Result<Self> {
         Ok(Self {
-            auxiliary: trans.auxiliary,
-            source: TransactionSource::Peer(trans.server_id.into()),
-            operation: TransactionOp::try_from(
-                trans
-                    .transaction
-                    .ok_or(anyhow!("A valid transaction must be provided"))?,
-            )?,
+            auxiliary: trans.auxiliary.clone(),
+            source: TransactionSource::Peer(trans.server_id.clone().into()),
+            operation: TransactionOp::try_from(match &trans.transaction {
+                None => {Err(anyhow!("A valid transaction must be provided"))?}
+                Some(t) => {anyhow::Ok(t)}
+            }?)?,
         })
     }
 
-    fn from_client(trans: ClientTransactionRequest) -> Result<Self> {
+    fn from_client(trans: &ClientTransactionRequest) -> Result<Self> {
         Ok(Self {
-            auxiliary: trans.auxiliary,
+            auxiliary: trans.auxiliary.clone(),
             source: TransactionSource::Client,
             operation: TransactionOp::try_from(
-                trans
-                    .transaction
-                    .ok_or(anyhow!("A valid transaction must be provided"))?,
+                match &trans.transaction {
+                    None => {Err(anyhow!("A valid transaction must be provided"))}
+                    Some(t) => {Ok(t)}
+                }?
             )?,
         })
     }
@@ -131,14 +132,14 @@ impl TransactionPool {
                 .clone()
                 .ok_or(anyhow!("An epoch number must be provided!"))?
                 .epoch,
-            Transaction::from_peer(req)?,
+            Transaction::from_peer(&req)?,
         )
     }
 
     pub fn insert_client(
         &mut self,
         epoch: u64,
-        req: ClientTransactionRequest,
+        req: &ClientTransactionRequest,
     ) -> Result<Option<()>> {
         self.insert_transaction(epoch, Transaction::from_client(req)?)
     }
