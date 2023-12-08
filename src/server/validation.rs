@@ -24,7 +24,7 @@ pub struct PrivateKey {
 }
 
 impl PrivateKey {
-    pub fn as_bytes(&self) -> &[u8]{
+    pub fn as_bytes(&self) -> &[u8] {
         self.raw.as_slice()
     }
 }
@@ -42,15 +42,14 @@ impl TryFrom<Vec<u8>> for PrivateKey {
     }
 }
 
-impl TryFrom<[u8; 32]>  for PrivateKey {
-
+impl TryFrom<[u8; 32]> for PrivateKey {
     type Error = anyhow::Error;
 
     fn try_from(value: [u8; 32]) -> Result<Self, Self::Error> {
-        Ok(Self{
+        Ok(Self {
             bls: bls_signatures::PrivateKey::from_bytes(&value)?,
-            dalek: ed25519_dalek::SigningKey::from_bytes(&ed25519_dalek::SecretKey::from(value)),
-            raw: value.to_vec()
+            dalek: ed25519_dalek::SigningKey::from_bytes(&value),
+            raw: value.to_vec(),
         })
     }
 }
