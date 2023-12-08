@@ -1,21 +1,25 @@
 [[peer_groups]]
 length = 3
 count = 5
+epoch_interval = 10000
 
 [[peer_groups]]
 prefix = "BA=="
 prefix_length = 3
 length = 7
 count = 3
+epoch_interval = 1000
 
 [[peer_groups]]
 prefix = "Ag=="
 prefix_length = 3
 length = 7
 count = 3
+epoch_interval = 1000
 
 [[peer_groups]]
 prefix = "AQ=="
 prefix_length = 3
 length = 7
 count = 3
+epoch_interval = 1000

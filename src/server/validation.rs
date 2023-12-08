@@ -42,15 +42,15 @@ impl TryFrom<Vec<u8>> for PrivateKey {
     }
 }
 
-impl TryFrom<[u8; 32]> for PrivateKey {
-    type Error = anyhow::Error;
-
-    fn try_from(value: [u8; 32]) -> Result<Self, Self::Error> {
-        Ok(Self {
-            bls: bls_signatures::PrivateKey::from_bytes(&value)?,
-            dalek: ed25519_dalek::SigningKey::from_bytes(&value),
+impl From<[u8; 32]> for PrivateKey {
+    fn from(value: [u8; 32]) -> Self {
+        Self {
+            bls: bls_signatures::PrivateKey::new(&value),
+            dalek: ed25519_dalek::SigningKey::from_bytes(
+                &value
+            ),
             raw: value.to_vec(),
-        })
+        }
     }
 }
 
@@ -117,5 +117,19 @@ impl MerkleVerseServer {
         let msg = hasher.finish().to_le_bytes();
         let sig = self.private_key.dalek.sign(&msg);
         Ok(sig.to_bytes().to_vec())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rand::{RngCore, thread_rng};
+
+    #[test]
+    fn tst_privkey_gen() -> Result<()>{
+        let mut src_bytes = [0u8;32];
+        thread_rng().fill_bytes(&mut src_bytes);
+        let priv_key = PrivateKey::from(src_bytes);
+        Ok(())
     }
 }

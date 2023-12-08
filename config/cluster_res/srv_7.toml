@@ -1,0 +1,130 @@
+[server]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+outer_port = 8007
+outer_addr = "127.0.0.1:8007"
+inner_port = 5007
+private_key = "YRH4DQHbWWbdGg7dk0af6OwOzA67W3HQXZVvFeKG1Ng="
+epoch_interval = 1000
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="
+
+[[peers]]
+connection_string = "127.0.0.1:8007"
+id = "srv_7"
+prefix = "BA=="
+prefix_length = 3
+length = 7
+bls_pub_key = "juxNHIMvKoPwDaVSCtJsA4J4ocU/ttt3fsgc/W94yWRi+KLiojnG9YBaimgjMYtK"
+dalek_pub_key = "eQDIzIfC63sMBOrly1ECzzw6gakryThcWSfx4dPz9zM="

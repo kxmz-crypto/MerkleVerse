@@ -1,12 +1,13 @@
 use crate::config::{LocalServerConfig, ServerConfig, ServersConfig};
 use crate::server::{PrivateKey};
 use crate::utils::b64;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use bls_signatures::Serialize as _;
 use config::{Config, ConfigError, Environment, File};
 use rand::{RngCore};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use tracing_log::LogTracer;
 
 const INNER_BEGIN: i32 = 5000;
 const OUTER_BEGIN: i32 = 8000;
@@ -44,7 +45,7 @@ impl MetaConfig {
                 let conn_st = format!("127.0.0.1:{}", port);
                 let mut rand_buf = [0u8; 32];
                 rand::thread_rng().fill_bytes(&mut rand_buf);
-                let priv_key = PrivateKey::try_from(rand_buf)?;
+                let priv_key = PrivateKey::from(rand_buf);
                 let pub_key = priv_key.public_key();
                 let serv_config = ServerConfig {
                     prefix: peer_group.prefix.clone(),
@@ -82,5 +83,29 @@ impl MetaConfig {
             final_conf.push(cur_conf);
         }
         Ok(final_conf)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::server::MerkleVerseServer;
+    use anyhow::{anyhow, Result};
+    use std::env;
+
+    #[tokio::test]
+    async fn test_config() -> Result<()> {
+        LogTracer::init().context("Failed to initialize LogTracer")?;
+        let path = Path::new(std::module_path!())
+            .parent()
+            .ok_or(anyhow!("Failed to get parent path"))?
+            .join("config")
+            .join("cluster.toml");
+
+        let config = MetaConfig::with_path(path)?;
+        println!("Number of Clusters: {:#?}", config.peer_groups.len());
+        let target_srv = config.to_serv_configs()?;
+        println!("Target Servers length: {:#?}", target_srv.len());
+        Ok(())
     }
 }

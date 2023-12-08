@@ -23,7 +23,7 @@ pub struct ServerArgs {
 #[derive(Parser, Debug)]
 pub struct GenPeerArgs {
     #[arg(short, long)]
-    pub num: u32,
+    pub src: PathBuf,
     #[arg(short, long)]
-    pub dest: PathBuf,
+    pub to: Option<PathBuf>,
 }

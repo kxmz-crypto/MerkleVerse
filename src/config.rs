@@ -1,8 +1,8 @@
 use crate::utils::{b64_to_loc, binary_string};
 use anyhow::Result;
-use config::{Config, ConfigError, Environment, File};
+use config::{Config, ConfigBuilder, ConfigError, Environment, File};
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 
 use std::path::Path;
 
@@ -19,6 +19,7 @@ pub struct ServerConfig {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct LocalServerConfig {
+    #[serde(flatten)]
     pub server_config: ServerConfig,
     pub outer_port: u16,
     pub outer_addr: String,
@@ -33,6 +34,12 @@ pub struct ServersConfig {
     pub peers: Vec<ServerConfig>,
 }
 
+impl ToString for ServersConfig {
+    fn to_string(&self) -> String {
+        toml::to_string(&self).unwrap()
+    }
+}
+
 impl ServersConfig {
     pub fn with_path<P: AsRef<Path>>(path: P) -> Result<Self, ConfigError> {
         let s = Config::builder()
@@ -41,6 +48,12 @@ impl ServersConfig {
             .build()?;
 
         s.try_deserialize()
+    }
+
+    pub fn to_path<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+        let res = toml::to_string(&self)?;
+        std::fs::write(path, res)?;
+        Ok(())
     }
 }
 

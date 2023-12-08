@@ -1,3 +1,6 @@
+use std::fs;
+use std::path::PathBuf;
+use ::config::ConfigBuilder;
 use crate::config::ServersConfig;
 use crate::grpc_handler::outer::MerkleVerseServer;
 use anyhow::Result;
@@ -5,6 +8,8 @@ use clap::Parser;
 
 use args::{Args, Commands, ServerArgs};
 use tonic::transport::Server;
+use crate::args::GenPeerArgs;
+use crate::metaconfig::MetaConfig;
 
 mod args;
 mod bridge;
@@ -19,7 +24,7 @@ async fn main() -> Result<()> {
     let args = Args::parse();
     match args.command {
         Commands::Server(s) => srv(s).await?,
-        Commands::GenPeers(_) => {}
+        Commands::GenPeers(g) => gen_configs(g)?
     }
     Ok(())
 }
@@ -47,5 +52,23 @@ async fn srv(args: ServerArgs) -> Result<()> {
         .await?;
 
     tokio::try_join!(prep_loop)?;
+    Ok(())
+}
+
+fn gen_configs(args: GenPeerArgs) -> Result<()> {
+    let config = MetaConfig::with_path(args.src)?;
+    let srvs = config.to_serv_configs()?;
+    match args.to {
+        None => {
+            for srv in srvs {
+                println!("{}\n", srv.to_string())
+            }
+        }
+        Some(path) => {
+            for srv in srvs{
+                fs::write(path.join(format!("{}.toml", srv.server.server_config.id)), srv.to_string())?;
+            }
+        }
+    }
     Ok(())
 }
