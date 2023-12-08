@@ -6,25 +6,25 @@ use serde::{Deserialize, Serialize};
 
 use std::path::Path;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
 pub struct ServerConfig {
     pub connection_string: String,
     pub id: String,
     pub prefix: Option<String>,
     pub prefix_length: Option<u32>,
     pub length: u32,
-    pub epoch_interval: u32, // epoch interval in miliseconds
     pub bls_pub_key: String,
     pub dalek_pub_key: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct LocalServerConfig {
     pub server_config: ServerConfig,
     pub outer_port: u16,
     pub outer_addr: String,
     pub inner_port: u16,
     pub private_key: String,
+    pub epoch_interval: u32, // epoch interval in miliseconds
 }
 
 #[derive(Debug, Deserialize, Serialize)]

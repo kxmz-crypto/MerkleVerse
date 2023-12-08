@@ -1,6 +1,10 @@
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine as _};
 
+pub fn b64(source: &[u8]) -> String {
+    general_purpose::STANDARD.encode(source)
+}
+
 pub fn b64_to_loc(b64: &str, length: usize) -> Result<Vec<u8>> {
     let mut bytes = general_purpose::STANDARD.decode(b64)?;
     if bytes.len() < length {

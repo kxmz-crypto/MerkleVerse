@@ -15,6 +15,7 @@ dependencies = [
  "ed25519-dalek",
  "futures",
  "prost",
+ "rand",
  "serde",
  "tokio",
  "tonic",

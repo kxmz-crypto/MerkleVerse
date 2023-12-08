@@ -1,0 +1,21 @@
+[[peer_groups]]
+length = 3
+count = 5
+
+[[peer_groups]]
+prefix = "BA=="
+prefix_length = 3
+length = 7
+count = 3
+
+[[peer_groups]]
+prefix = "Ag=="
+prefix_length = 3
+length = 7
+count = 3
+
+[[peer_groups]]
+prefix = "AQ=="
+prefix_length = 3
+length = 7
+count = 3

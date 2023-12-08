@@ -12,6 +12,7 @@ mod config;
 mod grpc_handler;
 mod server;
 mod utils;
+mod metaconfig;
 
 #[tokio::main]
 async fn main() -> Result<()> {

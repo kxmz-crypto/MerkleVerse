@@ -13,7 +13,7 @@ use anyhow::Result;
 
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex};
-use validation::{PrivateKey, PublicKey};
+pub use validation::{PrivateKey, PublicKey};
 
 struct Signature {
     signature: Vec<u8>,
@@ -30,7 +30,6 @@ pub struct PeerServer {
     id: ServerId,
     prefix: Index,
     length: u32,
-    epoch_interval: u32,
     public_key: PublicKey,
 }
 
@@ -130,7 +129,6 @@ impl From<Vec<PeerServerPointer>> for ServerCluster {
                             connection_string: format!("http://{}", srv.connection_string.clone()),
                             prefix: srv.prefix.clone(),
                             length: srv.length,
-                            epoch_interval: srv.epoch_interval,
                             id: srv.id.clone(),
                             public_key: srv.public_key.clone(),
                         },

@@ -24,7 +24,6 @@ impl PeerServer {
 
     pub async fn from_config(config: &config::ServerConfig) -> Result<Self> {
         Ok(Self {
-            epoch_interval: config.epoch_interval,
             id: ServerId(config.id.clone()),
             length: config.length,
             prefix: match &config.prefix {
@@ -122,7 +121,7 @@ impl MerkleVerseServer {
     pub async fn from_config(config: &config::LocalServerConfig) -> Result<Self> {
         let inn_cfig = &config.server_config;
         Ok(Self {
-            epoch_interval: inn_cfig.epoch_interval,
+            epoch_interval: config.epoch_interval,
             id: ServerId(inn_cfig.id.clone()),
             inner_dst: format!("http://127.0.0.1:{}", config.inner_port),
             length: inn_cfig.length,
