@@ -2,7 +2,7 @@
 <module type="CPP_MODULE" version="4">
   <component name="FacetManager">
     <facet type="Python" name="Python facet">
-      <configuration sdkName="ctf" />
+      <configuration sdkName="MerkleVerse" />
     </facet>
   </component>
   <component name="NewModuleRootManager">
@@ -12,6 +12,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="ctf interpreter library" level="application" />
+    <orderEntry type="library" name="MerkleVerse interpreter library" level="application" />
   </component>
 </module>
