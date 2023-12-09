@@ -270,6 +270,7 @@ impl MerkleVerseServer {
         // and when enough transactions are received.
         // Note: might need to base this on the server configuration
         // TODO: support bulk transactions
+        tracing::info!("Triggering commit");
         {
             let transactions = {
                 let serv_state = self.state.lock().unwrap();
@@ -312,6 +313,7 @@ impl MerkleVerseServer {
         serv_state.transaction_pool.insert_peer(req)
     }
 
+    #[instrument]
     pub async fn receive_client_transaction(
         &self,
         req: ClientTransactionRequest,
@@ -332,12 +334,13 @@ impl MerkleVerseServer {
                 let pc = ps.clone();
                 let ts = trans.clone();
                 let sig = signature.clone();
+                let my_id = self.id.0.clone();
                 tokio::spawn(async move {
                     let mut client = pc.get_client().await.unwrap();
                     let res = client
                         .peer_transaction(PeerTransactionRequest {
                             transaction: Some(ts),
-                            server_id: pc.id.0.clone(),
+                            server_id: my_id,
                             epoch: Some(Epoch { epoch }),
                             signature: sig,
                             auxiliary: None,

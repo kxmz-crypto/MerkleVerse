@@ -84,13 +84,13 @@ impl MerkleVerseServer {
     pub fn verify_peer_transaction(&self, transaction: &PeerTransactionRequest) -> Result<()> {
         // verifies the peer transaction with dalek
         let parallel = match &self.parallel {
-            None => Err(anyhow!("Peer server does not exist!")),
+            None => Err(anyhow!("Peer server cluster does not exist!")),
             Some(p) => anyhow::Ok(p),
         }?;
 
         let peer = parallel
             .get_server(&transaction.server_id.clone().into())
-            .ok_or(anyhow!("Peer server does not exist!"))?;
+            .ok_or(anyhow!("Peer server {} does not exist in server cluster {:?}!", &transaction.server_id, parallel))?;
 
         let target_transaction = match &transaction.transaction {
             None => Err(anyhow!("Transaction must be provided!")),

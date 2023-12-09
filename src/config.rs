@@ -31,7 +31,6 @@ pub struct LocalServerConfig {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServersConfig {
     pub server: LocalServerConfig,
-    #[serde(flatten)]
     pub peers: Option<Vec<ServerConfig>>,
 }
 

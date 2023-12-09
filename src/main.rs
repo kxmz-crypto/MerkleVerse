@@ -14,7 +14,9 @@ use tonic::transport::Server;
 use tonic_reflection::pb::FILE_DESCRIPTOR_SET;
 use tower_http::trace::TraceLayer;
 use tower::{BoxError, Service, ServiceExt, steer::Steer};
+use tracing_subscriber::EnvFilter;
 use tracing_subscriber::registry::Data;
+use tracing_subscriber::util::SubscriberInitExt;
 use crate::args::GenPeerArgs;
 use crate::metaconfig::MetaConfig;
 
@@ -84,6 +86,12 @@ fn gen_configs(args: GenPeerArgs) -> Result<()> {
 }
 
 fn initialize_tracing() -> Result<()>{
-    console_subscriber::init();
+    tracing_subscriber::fmt::fmt()
+        .with_line_number(true)
+        .with_file(true)
+        .with_thread_ids(true)
+        .with_env_filter(EnvFilter::from_default_env())
+        .finish()
+        .init();
     Ok(())
 }

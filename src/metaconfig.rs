@@ -75,7 +75,7 @@ impl MetaConfig {
                 if j == i {
                     continue;
                 }
-                peers.push(serv_configs[i].server_config.clone());
+                peers.push(serv_configs[j].server_config.clone());
             }
             let cur_conf = ServersConfig {
                 server: serv_configs[i].clone(),
