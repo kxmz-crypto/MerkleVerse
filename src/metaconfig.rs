@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tracing_log::LogTracer;
 
-const INNER_BEGIN: i32 = 5000;
+const INNER_BEGIN: i32 = 6000;
 const OUTER_BEGIN: i32 = 8000;
 
 #[derive(Debug, Deserialize, Serialize)]

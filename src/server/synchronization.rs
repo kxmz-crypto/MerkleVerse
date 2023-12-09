@@ -38,7 +38,7 @@ pub struct MerkleVerseServerState {
     pub current_epoch: u64,
     multi_sigs: HashMap<u64, MultiSig>,
     run_state: RunState,
-    peer_states: HashMap<ServerId, MerkleVerseServerState>,
+    peer_states: HashMap<ServerId, RunState>,
     transaction_pool: TransactionPool,
     last_commit_time: Option<Instant>,
 }
@@ -87,8 +87,7 @@ impl MerkleVerseServer {
     pub async fn receive_prepare(&self, epoch: u64, server_id: ServerId) -> Result<()> {
         let serv_runstate = {
             let mut serv_state = self.state.lock().unwrap();
-            let peer_state = serv_state.peer_states.get_mut(&server_id).unwrap();
-            peer_state.run_state = RunState::Prepare(epoch);
+            serv_state.peer_states.insert(server_id, RunState::Prepare(epoch));
             serv_state.run_state
         };
 
@@ -289,5 +288,16 @@ impl MerkleVerseServer {
             }
         }
         Ok(res)
+    }
+}
+
+
+impl MerkleVerseServerState {
+    pub fn add_peer(&mut self, server_id: ServerId) -> Result<()> {
+        self.peer_states.insert(
+            server_id,
+            RunState::Normal
+        );
+        Ok(())
     }
 }

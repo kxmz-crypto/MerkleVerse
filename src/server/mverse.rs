@@ -194,6 +194,14 @@ impl MerkleVerseServer {
             if peer_server.length == cur_srv.length && pref == cur_pref {
                 parallels.push(peer_servers[i].1.clone());
             }
+
+            cur_srv
+                .state
+                .lock()
+                .unwrap()
+                .add_peer(
+                    peer_servers[i].1.clone().borrow().id.clone(),
+                )?;
         }
 
         if !superiors.is_empty() {

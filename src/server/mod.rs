@@ -26,8 +26,8 @@ struct EpochInfo {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PeerServer {
-    connection_string: String,
     id: ServerId,
+    connection_string: String,
     prefix: Index,
     length: u32,
     public_key: PublicKey,
