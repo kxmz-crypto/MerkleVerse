@@ -31,7 +31,8 @@ pub struct LocalServerConfig {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ServersConfig {
     pub server: LocalServerConfig,
-    pub peers: Vec<ServerConfig>,
+    #[serde(flatten)]
+    pub peers: Option<Vec<ServerConfig>>,
 }
 
 impl ToString for ServersConfig {

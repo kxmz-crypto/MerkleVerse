@@ -4,15 +4,18 @@ use crate::grpc_handler::outer::mverseouter::{
     ServerIdentity,
 };
 use crate::grpc_handler::outer::TransactionRequest;
-use crate::server::transactions::TransactionPool;
+use crate::server::transactions::{Transaction, TransactionPool};
 use crate::server::{MerkleVerseServer, ServerId};
 use anyhow::{anyhow, Result};
 use bls_signatures::{aggregate, Serialize, Signature};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use tokio::time::Instant;
 use tonic::IntoRequest;
+use tracing::instrument;
+use crate::grpc_handler::inner::mversegrpc;
 
 const PREPARE_AFTER: u128 = 10000; // try to trigger prepare n milliseconds after the commit
+const COMMIT_AFTER: u128 = 10000; // try to trigger commit n milliseconds after the prepare
 const LOOP_INTERVAL: u64 = 1000; // epoch watch loop interval in milliseconds
 const MIN_TRANSACTIONS: usize = 1; // minimum number of transactions to automatically trigger prepare
 const MAX_TRANSACTIONS: usize = 20; // automatically trigger prepare if the number of transactions reaches this number
@@ -41,6 +44,7 @@ pub struct MerkleVerseServerState {
     peer_states: HashMap<ServerId, RunState>,
     transaction_pool: TransactionPool,
     last_commit_time: Option<Instant>,
+    last_prepare_time: Option<Instant>,
 }
 
 impl MerkleVerseServer {
@@ -57,6 +61,7 @@ impl MerkleVerseServer {
                 return Err(anyhow!("Server is already in prepare state"));
             }
             serv_state.run_state = RunState::Prepare(serv_state.current_epoch);
+            serv_state.last_prepare_time = Some(Instant::now());
             serv_state.current_epoch
         };
         if let Some(servers) = &self.parallel {
@@ -189,7 +194,6 @@ impl MerkleVerseServer {
         /// loop every 10 seconds, trigger commit if the epoch interval is reached.
         loop {
             tokio::time::sleep(tokio::time::Duration::from_millis(LOOP_INTERVAL)).await;
-
             let trigger_prep = {
                 let serv_state = self
                     .state
@@ -214,9 +218,51 @@ impl MerkleVerseServer {
             };
 
             if trigger_prep {
+                tracing::info!("Triggering prepare phase");
                 self.broadcast_prepare().await?;
             }
         }
+    }
+
+    pub async fn watch_commit_loop(&self) -> Result<()> {
+        /// watches the current epoch, and triggers the commit phase when the epoch interval is reached.
+        /// loop every 10 seconds, trigger commit if the epoch interval is reached.
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_millis(LOOP_INTERVAL)).await;
+            let trigger_commit = {
+                let serv_state = self
+                    .state
+                    .lock()
+                    .map_err(|_| anyhow!("Failed to lock state"))?;
+                if matches!(serv_state.run_state, RunState::Normal) {
+                    continue;
+                }
+                let t_trigger = match serv_state.last_prepare_time {
+                    Some(t) => t.elapsed().as_millis() > COMMIT_AFTER,
+                    None => true,
+                };
+                t_trigger
+            };
+
+            if trigger_commit {
+                tracing::info!("Triggering commit phase");
+                self.trigger_commit().await?;
+            }
+        }
+    }
+
+    pub async fn routine(&self) -> Result<()> {
+
+        let prep_loop = async move {
+            self.watch_trigger_prepare().await
+        };
+
+        let commit_loop = async move {
+            self.watch_commit_loop().await
+        };
+
+        tokio::try_join!(prep_loop, commit_loop)?;
+        Ok(())
     }
 
     pub async fn trigger_commit(&self) -> Result<()> {
@@ -224,18 +270,34 @@ impl MerkleVerseServer {
         // and when enough transactions are received.
         // Note: might need to base this on the server configuration
         // TODO: support bulk transactions
-        let serv_state = self.state.lock().unwrap();
-        let transactions = serv_state
-            .transaction_pool
-            .get_epoch(serv_state.current_epoch);
-        let mut inner_client = self.get_inner_client().await?;
-        if let Some(transactions) = transactions {
-            for t in transactions {
-                inner_client
-                    .transaction(TransactionRequest::from(t))
-                    .await?;
+        {
+            let transactions = {
+                let serv_state = self.state.lock().unwrap();
+                let res = serv_state
+                    .transaction_pool
+                    .get_epoch(serv_state.current_epoch);
+                match res {
+                    None => {vec![]}
+                    Some(transet) => {
+                        transet
+                            .iter().map(|t| TransactionRequest::from(t.clone()))
+                            .collect()
+                    }
+                }
+            };
+            if transactions.len()>0{
+                let mut inner_client = self.get_inner_client().await?;
+                for t in transactions {
+                    inner_client
+                        .transaction(t)
+                        .await?;
+                }
+                inner_client.trigger_epoch(mversegrpc::Empty{}).await?;
             }
         }
+        let mut serv_state = self.state.lock().unwrap();
+        serv_state.run_state = RunState::Normal;
+        serv_state.current_epoch += 1;
         Ok(())
     }
 

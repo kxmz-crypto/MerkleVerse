@@ -70,16 +70,17 @@ impl MetaConfig {
         }
         let mut final_conf = Vec::new();
         for i in 0..serv_configs.len() {
-            let mut cur_conf = ServersConfig {
-                server: serv_configs[i].clone(),
-                peers: Vec::new(),
-            };
+            let mut peers = Vec::new();
             for j in 0..serv_configs.len() {
                 if j == i {
                     continue;
                 }
-                cur_conf.peers.push(serv_configs[i].server_config.clone());
+                peers.push(serv_configs[i].server_config.clone());
             }
+            let cur_conf = ServersConfig {
+                server: serv_configs[i].clone(),
+                peers: Some(peers),
+            };
             final_conf.push(cur_conf);
         }
         Ok(final_conf)

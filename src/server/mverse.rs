@@ -81,14 +81,14 @@ impl MerkleVerseServer {
             .trigger_epoch(mversegrpc::Empty {}.into_request())
             .await?
             .into_inner();
-        eprintln!(
+        tracing::info!(
             "Epoch #{:?} triggered, new head: {:?}",
             res.new_epoch, res.head
         );
         if let Some(servers) = &self.superior {
             let mut futures = vec![];
             for (_, srv) in &servers.servers {
-                eprintln!(
+                tracing::info!(
                     "Triggering epoch on superior server: {:?}",
                     srv.connection_string
                 );
@@ -154,7 +154,7 @@ impl MerkleVerseServer {
         let mut length_map: HashMap<u32, Vec<PeerServerPointer>> = HashMap::new();
         let mut peer_servers: Vec<(String, PeerServerPointer)> = vec![];
 
-        for cfig in config.peers {
+        for cfig in config.peers.unwrap_or_default() {
             let pnt: PeerServerPointer =
                 Rc::new(RefCell::new(PeerServer::from_config(&cfig).await?));
             peer_servers.push((cfig.id.clone(), pnt.clone()));

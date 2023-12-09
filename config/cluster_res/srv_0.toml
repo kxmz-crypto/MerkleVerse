@@ -2,101 +2,10 @@
 connection_string = "127.0.0.1:8000"
 id = "srv_0"
 length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
+bls_pub_key = "jpSP3y+NRu6AHZ5eaAZ7Rcqx3jmkM/8W5mt9ykHE8NzfWh48oazZ6Smr/qn+kcf6"
+dalek_pub_key = "cJYR8k6TSzN3qtF2Xi4pyegyJ6qp3DElNcQ+ctK2lIs="
 outer_port = 8000
 outer_addr = "127.0.0.1:8000"
-inner_port = 5000
-private_key = "fBQ96uh2aO/phIvWv4xlOHoNHrLmCVmDOhGmilNDO5Q="
+inner_port = 6000
+private_key = "U9/SQwx36NBZaM5SAFISh6EaHkNSYDbxlvubFlubRFA="
 epoch_interval = 10000
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="
-
-[[peers]]
-connection_string = "127.0.0.1:8000"
-id = "srv_0"
-length = 3
-bls_pub_key = "j41BkHIAn3INVELHeI2P0pOwOaC2A5QcvWuZfs+yrE8mnPUO2hTeFYpGcMdiDI3j"
-dalek_pub_key = "iG4qGvDoiUp3kmey094WNhvAdXfRdt2IVOJ+ez/rjAQ="

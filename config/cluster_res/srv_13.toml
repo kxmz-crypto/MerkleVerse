@@ -4,12 +4,12 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 outer_port = 8013
 outer_addr = "127.0.0.1:8013"
-inner_port = 5013
-private_key = "hLm4ZS6DcvihiHJnn71OIxtQnOAizeGHfcpNuL+BHVU="
+inner_port = 6013
+private_key = "l6p3to9lKMxijRuzoc8O2nNbrjif3Xp5fHkkY9YIYyw="
 epoch_interval = 1000
 
 [[peers]]
@@ -18,8 +18,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -27,8 +27,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -36,8 +36,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -45,8 +45,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -54,8 +54,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -63,8 +63,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -72,8 +72,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -81,8 +81,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -90,8 +90,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -99,8 +99,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -108,8 +108,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -117,8 +117,8 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="
 
 [[peers]]
 connection_string = "127.0.0.1:8013"
@@ -126,5 +126,5 @@ id = "srv_13"
 prefix = "AQ=="
 prefix_length = 3
 length = 7
-bls_pub_key = "jvMu/ZJTaG6Eb+viSeu//Y+aJtB/3lpMTNEiWytaUjwF8GIaEp6EeUOfBPs6VJUa"
-dalek_pub_key = "2yY1SGGIdIvYgeLf3ae0/eZQvpcpbJQOcC4rIOtoD7g="
+bls_pub_key = "rQR3R7b2zdJH2o+NbyhnhU6Lvfm0XMLr3YjSX6eEMv6kruuItAPamLLW/KVaYx0i"
+dalek_pub_key = "CdQ8c/HvYDLbgFldBV+tf87mcwsFmHEDI1istobLf/A="

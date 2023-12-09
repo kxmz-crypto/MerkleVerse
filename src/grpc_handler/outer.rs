@@ -15,6 +15,7 @@ pub use mverseouter::{
     ServerInformationResponse, TransactionResponse,
 };
 use tonic::{IntoRequest, Request, Response, Status};
+use tracing::instrument;
 
 pub mod mverseouter {
     tonic::include_proto!("mverseouter");
@@ -26,6 +27,7 @@ fn err_transform(e: anyhow::Error) -> Status {
 
 #[tonic::async_trait]
 impl MerkleVerse for server::MerkleVerseServer {
+    #[instrument]
     async fn get_server_information(
         &self,
         _request: Request<Empty>,
@@ -36,6 +38,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         }))
     }
 
+    #[instrument]
     async fn look_up_history(
         &self,
         request: Request<LookupHistoryRequest>,
@@ -50,6 +53,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         Ok(Response::new(res))
     }
 
+    #[instrument]
     async fn get_current_root(
         &self,
         _request: Request<Empty>,
@@ -64,6 +68,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         Ok(Response::new(rsp))
     }
 
+    #[instrument]
     async fn get_root(
         &self,
         request: Request<GetMerkleRootRequest>,
@@ -78,6 +83,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         Ok(Response::new(rsp))
     }
 
+    #[instrument]
     async fn look_up_latest(
         &self,
         request: Request<LookUpLatestRequest>,
@@ -91,6 +97,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         Ok(Response::new(res))
     }
 
+    #[instrument]
     async fn client_transaction(
         &self,
         request: Request<ClientTransactionRequest>,
@@ -110,6 +117,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         Ok(Response::new(res))
     }
 
+    #[instrument]
     async fn peer_transaction(
         &self,
         request: Request<PeerTransactionRequest>,
@@ -129,6 +137,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         Ok(Response::new(res))
     }
 
+    #[instrument]
     async fn peer_prepare(
         &self,
         request: Request<PeerPrepareRequest>,
@@ -152,6 +161,7 @@ impl MerkleVerse for server::MerkleVerseServer {
         Ok(Response::new(Empty {}))
     }
 
+    #[instrument]
     async fn peer_commit(
         &self,
         request: Request<PeerCommitRequest>,
