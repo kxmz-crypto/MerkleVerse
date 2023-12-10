@@ -9,13 +9,17 @@ use crate::server::{MerkleVerseServer, ServerId};
 use anyhow::{anyhow, Result};
 use bls_signatures::{aggregate, Serialize, Signature};
 use std::collections::{HashMap, HashSet};
+use std::future::Future;
 use tokio::time::Instant;
+use tokio::sync::watch::{channel, Receiver, Sender};
+use tokio::sync::watch::error::RecvError;
 use tonic::IntoRequest;
 use tracing::instrument;
+use tracing::log::Level::Debug;
 use crate::grpc_handler::inner::mversegrpc;
 
-const PREPARE_AFTER: u128 = 10000; // try to trigger prepare n milliseconds after the commit
-const COMMIT_AFTER: u128 = 10000; // try to trigger commit n milliseconds after the prepare
+const PREPARE_AFTER: u128 = 1000; // try to trigger prepare n milliseconds after the commit
+const COMMIT_AFTER: u128 = 1000; // try to trigger commit n milliseconds after the prepare
 const LOOP_INTERVAL: u64 = 1000; // epoch watch loop interval in milliseconds
 const MIN_TRANSACTIONS: usize = 1; // minimum number of transactions to automatically trigger prepare
 const MAX_TRANSACTIONS: usize = 20; // automatically trigger prepare if the number of transactions reaches this number
@@ -35,7 +39,7 @@ pub enum RunState {
     Normal,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct MerkleVerseServerState {
     pub current_root: Vec<u8>,
     pub current_epoch: u64,
@@ -45,6 +49,27 @@ pub struct MerkleVerseServerState {
     transaction_pool: TransactionPool,
     last_commit_time: Option<Instant>,
     last_prepare_time: Option<Instant>,
+    prepare_notify: (Sender<u64>, Receiver<u64>),
+    commit_notify: (Sender<u64>, Receiver<u64>)
+}
+
+impl MerkleVerseServerState {
+    pub fn new() -> Self {
+        let (prepare_tx, prepare_rx) = channel(0);
+        let (commit_tx, commit_rx) = channel(0);
+        Self {
+            prepare_notify: (prepare_tx, prepare_rx),
+            commit_notify: (commit_tx, commit_rx),
+            current_root: Default::default(),
+            current_epoch: 0,
+            multi_sigs: Default::default(),
+            run_state: RunState::Normal,
+            peer_states: Default::default(),
+            transaction_pool: Default::default(),
+            last_commit_time: None,
+            last_prepare_time: None,
+        }
+    }
 }
 
 impl MerkleVerseServer {
@@ -299,6 +324,7 @@ impl MerkleVerseServer {
         let mut serv_state = self.state.lock().unwrap();
         serv_state.run_state = RunState::Normal;
         serv_state.current_epoch += 1;
+        serv_state.commit_notify.0.send(serv_state.current_epoch)?;
         Ok(())
     }
 
@@ -313,46 +339,78 @@ impl MerkleVerseServer {
         serv_state.transaction_pool.insert_peer(req)
     }
 
-    #[instrument]
     pub async fn receive_client_transaction(
         &self,
         req: ClientTransactionRequest,
+        wait: bool,
     ) -> Result<Option<()>> {
-        let mut serv_state = self.state.lock().unwrap();
-        let epoch = match serv_state.run_state {
-            RunState::Prepare(_) => serv_state.current_epoch + 1,
-            RunState::Normal => serv_state.current_epoch,
-        };
-        let res = serv_state.transaction_pool.insert_client(epoch, &req)?;
-        if res.is_some() {
-            return Ok(res);
-        }
-        if let Some(parallels) = &self.parallel {
-            let trans = req.transaction.unwrap();
-            let signature = self.sign_transaction(&trans)?;
-            for (_, ps) in parallels.servers.iter() {
-                let pc = ps.clone();
-                let ts = trans.clone();
-                let sig = signature.clone();
-                let my_id = self.id.0.clone();
-                tokio::spawn(async move {
-                    let mut client = pc.get_client().await.unwrap();
-                    let res = client
-                        .peer_transaction(PeerTransactionRequest {
-                            transaction: Some(ts),
-                            server_id: my_id,
-                            epoch: Some(Epoch { epoch }),
-                            signature: sig,
-                            auxiliary: None,
-                        })
-                        .await;
-                    if let Err(e) = res {
-                        tracing::error!("Failed to send peer transaction to {}: {}", pc.id.0, e);
-                    }
-                });
+        let r = {
+            let mut serv_state = self.state.lock().unwrap();
+            let epoch = match serv_state.run_state {
+                RunState::Prepare(_) => serv_state.current_epoch + 1,
+                RunState::Normal => serv_state.current_epoch,
+            };
+            let res = serv_state.transaction_pool.insert_client(epoch, &req)?;
+            if res.is_some() {
+                return Ok(res);
             }
+            if let Some(parallels) = &self.parallel {
+                let trans = req.transaction.unwrap();
+                let signature = self.sign_transaction(&trans)?;
+                for (_, ps) in parallels.servers.iter() {
+                    let pc = ps.clone();
+                    let ts = trans.clone();
+                    let sig = signature.clone();
+                    let my_id = self.id.0.clone();
+                    tokio::spawn(async move {
+                        let mut client = pc.get_client().await.unwrap();
+                        let res = client
+                            .peer_transaction(PeerTransactionRequest {
+                                transaction: Some(ts),
+                                server_id: my_id,
+                                epoch: Some(Epoch { epoch }),
+                                signature: sig,
+                                auxiliary: None,
+                            })
+                            .await;
+                        if let Err(e) = res {
+                            tracing::error!("Failed to send peer transaction to {}: {}", pc.id.0, e);
+                        }
+                    });
+                }
+            }
+            Ok(res)
+        };
+        if wait {
+            let (mut recv_chan, target_epoch) = {
+                let srv_state = self.state.lock().unwrap();
+                let target_epoch = match srv_state.run_state {
+                    RunState::Prepare(_) => srv_state.current_epoch + 1,
+                    RunState::Normal => srv_state.current_epoch,
+                };
+                let recv_chan = srv_state.commit_notify.1.clone();
+                (recv_chan, target_epoch)
+            };
+            let mut try_cnt = 0;
+            while try_cnt<3 {
+                match recv_chan.changed().await {
+                    Ok(_) if *recv_chan.borrow_and_update() == target_epoch => {
+                        return r;
+                    }
+                    Ok(_) => {
+                        try_cnt += 1
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to receive commit notification: {}", e);
+                        return Err(anyhow!("Failed to receive commit notification"));
+                    }
+                };
+            }
+            tracing::error!("Failed to receive commit notification");
+            Err(anyhow!("Failed to receive commit notification"))
+        } else {
+            r
         }
-        Ok(res)
     }
 }
 

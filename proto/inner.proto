@@ -58,6 +58,7 @@ message GetMerkleRootRequest {
 
 message GetMerkleRootResponse {
   bytes head = 1;
+  Epoch epoch = 2;
 }
 
 message TriggerEpochResponse{

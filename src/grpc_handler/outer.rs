@@ -64,8 +64,7 @@ impl MerkleVerse for server::MerkleVerseServer {
             .get_current_root(inn_req.into_request())
             .await?
             .into_inner();
-        let rsp = GetMerkleRootResponse { head: res.head };
-        Ok(Response::new(rsp))
+        Ok(Response::new(res))
     }
 
     #[instrument]
@@ -79,8 +78,7 @@ impl MerkleVerse for server::MerkleVerseServer {
             .get_root(inn_req.into_request())
             .await?
             .into_inner();
-        let rsp = GetMerkleRootResponse { head: res.head };
-        Ok(Response::new(rsp))
+        Ok(Response::new(res))
     }
 
     #[instrument]
@@ -103,8 +101,9 @@ impl MerkleVerse for server::MerkleVerseServer {
         request: Request<ClientTransactionRequest>,
     ) -> Result<Response<TransactionResponse>, Status> {
         let inn_req = request.into_inner();
+        let wait = inn_req.wait;
         let res = self
-            .receive_client_transaction(inn_req)
+            .receive_client_transaction(inn_req, wait)
             .await
             .map_err(err_transform)
             .map(|res| TransactionResponse {

@@ -42,6 +42,7 @@ message PeerPrepareRequest {
 message ClientTransactionRequest {
   mversegrpc.TransactionRequest transaction = 2;
   optional bytes auxiliary = 3;
+  bool wait = 4; // wait for it to be committed to latest epoch
 }
 
 message PeerTransactionRequest {

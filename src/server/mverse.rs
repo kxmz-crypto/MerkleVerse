@@ -106,6 +106,7 @@ impl MerkleVerseServer {
                                             .into(),
                                 }),
                                 auxiliary: None, // TODO: make auxiliary a signature of the head
+                                wait: false,
                             }
                             .into_request(),
                         )
@@ -144,7 +145,7 @@ impl MerkleVerseServer {
                 &general_purpose::STANDARD.decode(&inn_cfig.bls_pub_key)?,
                 &general_purpose::STANDARD.decode(&inn_cfig.dalek_pub_key)?,
             )?,
-            state: Arc::new(Mutex::new(MerkleVerseServerState::default())),
+            state: Arc::new(Mutex::new(MerkleVerseServerState::new())),
         })
     }
 
