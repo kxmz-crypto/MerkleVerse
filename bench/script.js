@@ -1,5 +1,6 @@
 import grpc from "k6/net/grpc";
 import { check, sleep } from 'k6';
+import {get_rand_port} from "./utils.js";
 
 const client = new grpc.Client();
 client.load(['../proto', '../'], 'outer.proto')
@@ -15,7 +16,7 @@ export const options = {
 // about authoring k6 scripts.
 //
 export default function() {
-  client.connect('localhost:8000', {plaintext: true});
+  client.connect(`localhost:${get_rand_port()}`, {plaintext: true});
   const data = {};
   const response = client.invoke('mverseouter.MerkleVerse/GetCurrentRoot', data);
 
