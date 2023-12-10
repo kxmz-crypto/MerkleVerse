@@ -6,6 +6,7 @@ use anyhow::{anyhow, Result};
 use bls_signatures::Serialize;
 use ed25519_dalek::{Signer, Verifier};
 use std::collections::hash_map::DefaultHasher;
+use std::fmt::{Debug, Formatter};
 use std::hash::{Hash, Hasher};
 
 // For public keys, the bls and dalek keys are specified separately.

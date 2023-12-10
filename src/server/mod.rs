@@ -12,6 +12,7 @@ use crate::server::synchronization::MerkleVerseServerState;
 use anyhow::Result;
 
 use std::convert::TryFrom;
+use std::fmt::{Debug, Formatter};
 use std::sync::{Arc, Mutex};
 pub use validation::{PrivateKey, PublicKey};
 
@@ -77,7 +78,7 @@ impl From<String> for ServerId {
 
 /// the `MerkleVerseServer` struct records the current server's location within the
 /// Merkle Verse system.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct MerkleVerseServer {
     inner_dst: String,
     pub connection_string: String,
@@ -90,6 +91,20 @@ pub struct MerkleVerseServer {
     private_key: PrivateKey,
     public_key: PublicKey,
     state: Arc<Mutex<MerkleVerseServerState>>, // TODO: consider using a RwLock instead
+}
+
+impl Debug for MerkleVerseServer{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MerkleVerseServer")
+            .field("inner_dst", &self.inner_dst)
+            .field("connection_string", &self.connection_string)
+            .field("id", &self.id)
+            .field("prefix", &self.prefix)
+            .field("length", &self.length)
+            .field("epoch_interval", &self.epoch_interval)
+            .field("state", &self.state)
+            .finish()
+    }
 }
 
 impl Index {

@@ -1,4 +1,6 @@
 # Define the number of servers
+cargo build
+
 SRV_LEN=$(ls -1 config/cluster_res/ | wc -l)
 
 echo "Starting ${SRV_LEN} servers..."

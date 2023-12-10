@@ -9,13 +9,13 @@ use crate::server::{MerkleVerseServer, ServerId};
 use anyhow::{anyhow, Result};
 use bls_signatures::{aggregate, Serialize, Signature};
 use std::collections::{HashMap, HashSet};
+use std::fmt::{Debug, Formatter};
 use std::future::Future;
 use tokio::time::Instant;
 use tokio::sync::watch::{channel, Receiver, Sender};
 use tokio::sync::watch::error::RecvError;
 use tonic::IntoRequest;
 use tracing::instrument;
-use tracing::log::Level::Debug;
 use crate::grpc_handler::inner::mversegrpc;
 
 const PREPARE_AFTER: u128 = 1000; // try to trigger prepare n milliseconds after the commit
@@ -39,7 +39,6 @@ pub enum RunState {
     Normal,
 }
 
-#[derive(Debug)]
 pub struct MerkleVerseServerState {
     pub current_root: Vec<u8>,
     pub current_epoch: u64,
@@ -51,6 +50,14 @@ pub struct MerkleVerseServerState {
     last_prepare_time: Option<Instant>,
     prepare_notify: (Sender<u64>, Receiver<u64>),
     commit_notify: (Sender<u64>, Receiver<u64>)
+}
+
+impl Debug for MerkleVerseServerState{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MerkleVerseServerState")
+            .field("current_epoch", &self.current_epoch)
+            .finish()
+    }
 }
 
 impl MerkleVerseServerState {
@@ -83,7 +90,8 @@ impl MerkleVerseServer {
         let cur_epoch = {
             let mut serv_state = self.state.lock().unwrap();
             if matches!(serv_state.run_state, RunState::Prepare(_)) {
-                return Err(anyhow!("Server is already in prepare state"));
+                tracing::warn!("Server is already in prepare state");
+                return Ok(());
             }
             serv_state.run_state = RunState::Prepare(serv_state.current_epoch);
             serv_state.last_prepare_time = Some(Instant::now());
@@ -344,7 +352,7 @@ impl MerkleVerseServer {
         req: ClientTransactionRequest,
         wait: bool,
     ) -> Result<Option<()>> {
-        let r = {
+        let (r, target_epoch) = {
             let mut serv_state = self.state.lock().unwrap();
             let epoch = match serv_state.run_state {
                 RunState::Prepare(_) => serv_state.current_epoch + 1,
@@ -379,25 +387,24 @@ impl MerkleVerseServer {
                     });
                 }
             }
-            Ok(res)
+            (Ok(res), epoch+1)
         };
         if wait {
-            let (mut recv_chan, target_epoch) = {
+            let mut recv_chan = {
                 let srv_state = self.state.lock().unwrap();
-                let target_epoch = match srv_state.run_state {
-                    RunState::Prepare(_) => srv_state.current_epoch + 1,
-                    RunState::Normal => srv_state.current_epoch,
-                };
                 let recv_chan = srv_state.commit_notify.1.clone();
-                (recv_chan, target_epoch)
+                recv_chan
             };
             let mut try_cnt = 0;
             while try_cnt<3 {
+                tracing::info!("Waiting for commit notification, waiting until epoch {}", target_epoch);
                 match recv_chan.changed().await {
                     Ok(_) if *recv_chan.borrow_and_update() == target_epoch => {
+                        tracing::info!("wheee");
                         return r;
                     }
                     Ok(_) => {
+                        tracing::info!("whelp: {} ( I want {})", *recv_chan.borrow_and_update(), target_epoch);
                         try_cnt += 1
                     }
                     Err(e) => {
