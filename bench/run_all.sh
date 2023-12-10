@@ -6,7 +6,7 @@ echo "Starting ${SRV_LEN} servers..."
 # Function to run server commands
 run_server() {
     local i=$1
-    RUST_BACKTRACE=1 RUST_LOG=debug target/debug/MerkleVerseWrapper server -c config/cluster_res/srv_${i}.toml &
+    RUST_BACKTRACE=1 RUST_LOG=info target/debug/MerkleVerseWrapper server -c config/cluster_res/srv_${i}.toml &
     PORT=$((6000+i)) ../MerkleSquare/demo/mverserver/mverserver &
 }
 

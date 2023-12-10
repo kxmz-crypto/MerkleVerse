@@ -32,13 +32,11 @@ impl PrivateKey {
 impl TryFrom<Vec<u8>> for PrivateKey {
     type Error = anyhow::Error;
     fn try_from(value: Vec<u8>) -> std::result::Result<Self, Self::Error> {
-        Ok(Self {
-            bls: bls_signatures::PrivateKey::from_bytes(&value)?,
-            dalek: ed25519_dalek::SigningKey::from_bytes(&ed25519_dalek::SecretKey::try_from(
-                &value[0..32],
-            )?),
-            raw: value,
-        })
+        if value.len()<32 {
+            return Err(anyhow!("Private key invalid length"));
+        }
+        let vals: [u8;32] = value.as_slice().try_into()?;
+        Ok(Self::from(vals))
     }
 }
 
