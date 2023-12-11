@@ -352,6 +352,7 @@ impl MerkleVerseServer {
         req: ClientTransactionRequest,
         wait: bool,
     ) -> Result<Option<()>> {
+        tracing::info!("Received client transaction {:?}", req);
         let (r, target_epoch) = {
             let mut serv_state = self.state.lock().unwrap();
             let epoch = match serv_state.run_state {

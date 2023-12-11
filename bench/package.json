@@ -11,5 +11,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/k6": "^0.48.0"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3"
   }
 }
